@@ -63,7 +63,7 @@ func (c *authServiceClient) Validate(ctx context.Context, in *ValidateRequest, o
 }
 
 // AuthServiceServer is the server API for AuthService service.
-// All implementations must embed UnimplementedAuthServiceServer
+// All implementations should embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
@@ -71,7 +71,7 @@ type AuthServiceServer interface {
 	Validate(context.Context, *ValidateRequest) (*ValidateResponse, error)
 }
 
-// UnimplementedAuthServiceServer must be embedded to have forward compatible implementations.
+// UnimplementedAuthServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedAuthServiceServer struct {
 }
 
@@ -84,7 +84,6 @@ func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*Lo
 func (UnimplementedAuthServiceServer) Validate(context.Context, *ValidateRequest) (*ValidateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Validate not implemented")
 }
-func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
 // UnsafeAuthServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to AuthServiceServer will
