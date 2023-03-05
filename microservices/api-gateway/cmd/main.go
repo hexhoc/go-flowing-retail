@@ -10,15 +10,17 @@ import (
 )
 
 func main() {
-	config, err := config.LoadConfig()
+	c, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalln("Failed at config", err)
 	}
 
 	r := gin.Default()
 
-	authSvc := auth.RegisterRoutes(r, &config)
+	authSvc := auth.RegisterRoutes(r, c)
 
 	fmt.Println("Starting api gateways")
 	fmt.Println(authSvc)
+
+	r.Run(c.Port)
 }

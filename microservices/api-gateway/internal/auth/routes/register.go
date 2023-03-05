@@ -15,7 +15,7 @@ type RegisterRequestBody struct {
 
 func Register(ctx *gin.Context, authClient pb.AuthServiceClient) {
 	request := RegisterRequestBody{}
-	err := ctx.BindJSON(request)
+	err := ctx.BindJSON(&request)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return

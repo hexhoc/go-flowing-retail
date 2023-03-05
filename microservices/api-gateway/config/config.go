@@ -7,7 +7,7 @@ type Config struct {
 	AuthServiceUrl string `mapstructure:"AUTH_SERVICE_URL"`
 }
 
-func LoadConfig() (Config, error) {
+func LoadConfig() (*Config, error) {
 	viper.AddConfigPath("./config/envs")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
@@ -16,13 +16,12 @@ func LoadConfig() (Config, error) {
 	// (config, default or flags). If matching env vars are found, they are loaded into Viper.
 	viper.AutomaticEnv()
 
-	c := Config{}
-
 	err := viper.ReadInConfig()
 	if err != nil {
-		return c, err
+		return nil, err
 	}
 
+	c := Config{}
 	err = viper.Unmarshal(&c)
-	return c, err
+	return &c, err
 }
