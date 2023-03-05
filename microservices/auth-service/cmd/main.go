@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/hexhoc/auth-service/config"
+	"github.com/hexhoc/auth-service/internal/db"
 	"github.com/hexhoc/auth-service/internal/pb"
 	"github.com/hexhoc/auth-service/internal/services"
+	"github.com/hexhoc/auth-service/internal/utils"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -18,7 +20,18 @@ func main() {
 		log.Fatalln("Failed at config", err)
 	}
 
-	s := services.Server{}
+	h := db.Init(c.DBUrl)
+	jwt := utils.JwtWrapper{
+		SecretKey:       c.JWTSecretKey,
+		Issuer:          "auth-service",
+		ExpirationHours: 24 * 365,
+	}
+
+	s := services.Server{
+		H:   h,
+		Jwt: jwt,
+	}
+
 	grpcServer := grpc.NewServer()
 	pb.RegisterAuthServiceServer(grpcServer, &s)
 	lis, err := net.Listen("tcp", c.Port)
