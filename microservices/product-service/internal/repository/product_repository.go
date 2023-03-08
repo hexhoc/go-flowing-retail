@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/hexhoc/product-service/internal/models"
 	"github.com/hexhoc/product-service/pkg/datasource/postgres"
 	"github.com/jackc/pgx/v4"
 )
+
+var l = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 type ProductRepository struct {
 	db *postgres.Postgres
@@ -24,7 +27,7 @@ func (r *ProductRepository) FindAll() []*models.Product {
 	rows, err := r.db.Pool.Query(context.Background(), query)
 
 	if err != nil {
-		log.Fatalf("(u *UserInfoRepository) FindAll(userId int64): %s", err)
+		l.Fatal(err)
 	}
 
 	var products []*models.Product
@@ -39,13 +42,13 @@ func (r *ProductRepository) FindAll() []*models.Product {
 	return products
 }
 
-func (r *ProductRepository) FindById(id uint) *models.Product {
+func (r *ProductRepository) FindById(id uint32) *models.Product {
 	query := "SELECT * FROM products p WHERE p.id = $1"
 
 	rows, err := r.db.Pool.Query(context.Background(), query, id)
 
 	if err != nil {
-		log.Fatalf("(u *UserInfoRepository) findById(userId int64): %s", err)
+		l.Fatal(err)
 	}
 
 	var product models.Product
@@ -88,7 +91,7 @@ func (r *ProductRepository) Save(product *models.Product) uint32 {
 	)
 
 	if err != nil {
-		log.Fatalf("(u *UserInfoRepository) findById(userId int64): %s", err)
+		l.Fatal(err)
 	}
 
 	fmt.Println("Product update row affected ", ct.RowsAffected())
@@ -97,15 +100,15 @@ func (r *ProductRepository) Save(product *models.Product) uint32 {
 }
 
 func (r *ProductRepository) SaveAll(products []*models.Product) {
-	u.productRepository.SaveAll(products)
+	// r.productRepository.SaveAll(products)
 }
 
-func (r *ProductRepository) Update(id uint, product *models.Product) {
-	u.productRepository.Update(id, product)
+func (r *ProductRepository) Update(id uint32, product *models.Product) {
+	// r.productRepository.Update(id, product)
 }
 
-func (r *ProductRepository) Delete(id uint) {
-	u.productRepository.Delete(id)
+func (r *ProductRepository) Delete(id uint32) {
+	// r.productRepository.Delete(id)
 }
 
 func mapModel(r pgx.Rows, product *models.Product) {
@@ -124,7 +127,7 @@ func mapModel(r pgx.Rows, product *models.Product) {
 	)
 
 	if err != nil {
-		log.Println("error while iterating dataset ", err)
+		l.Println("error while iterating dataset ", err)
 	}
 
 }

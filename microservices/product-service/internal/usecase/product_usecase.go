@@ -1,23 +1,23 @@
 package usecase
 
 import (
-	"github.com/hexhoc/product-service/internal/interfaces"
 	"github.com/hexhoc/product-service/internal/models"
+	"github.com/hexhoc/product-service/internal/repository"
 )
 
 type ProductUseCase struct {
-	productRepository interfaces.ProductRepository
+	productRepository *repository.ProductRepository
 }
 
-func NewProductUseCase(r interfaces.ProductRepository) *ProductUseCase {
+func NewProductUseCase(r *repository.ProductRepository) *ProductUseCase {
 	return &ProductUseCase{productRepository: r}
 }
 
-func (u *ProductUseCase) GetAll() []*models.Product {
+func (u *ProductUseCase) FindAll() []*models.Product {
 	return u.productRepository.FindAll()
 }
 
-func (u *ProductUseCase) GetById(id uint32) *models.Product {
+func (u *ProductUseCase) FindById(id uint32) *models.Product {
 	return u.productRepository.FindById(id)
 }
 
