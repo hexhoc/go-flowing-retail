@@ -10,6 +10,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -28,6 +29,8 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
+	github.com/jackc/pgx v3.6.2+incompatible
+	github.com/jackc/pgx/v5 v5.3.1
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/spf13/viper v1.15.0
 	golang.org/x/crypto v0.6.0 // indirect

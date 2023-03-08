@@ -28,7 +28,7 @@ func main() {
 	var productRepository interfaces.ProductRepository = repository.NewProductRepository(pg)
 	var productUseCase interfaces.ProductUseCase = usecase.NewProductUseCase(productRepository)
 
-	products := productUseCase.FindAll()
+	products := productUseCase.GetAll()
 	for i := 0; i < len(products); i++ {
 		fmt.Println(products[i])
 	}
