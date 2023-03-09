@@ -3,10 +3,9 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"log"
-	"time"
-
 	"github.com/jackc/pgx/v4/pgxpool"
+	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 const (
@@ -56,7 +55,7 @@ func connect(pg *Postgres, url string) error {
 			break
 		}
 
-		log.Printf("Postgres is trying to connect, attempts left: %d", pg.connAttempts)
+		log.Infof("Postgres is trying to connect, attempts left: %d", pg.connAttempts)
 		time.Sleep(pg.connTimeout)
 		pg.connAttempts--
 	}

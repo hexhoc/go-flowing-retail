@@ -6,6 +6,7 @@ type Config struct {
 	Port         string `mapstructure:"PORT"`
 	DBUrl        string `mapstructure:"DB_URL"`
 	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
+	LogLevel     string `mapstructure:"LOG_LEVEL"`
 }
 
 func LoadConfig() (*Config, error) {
