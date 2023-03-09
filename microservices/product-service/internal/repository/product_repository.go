@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"github.com/docker/docker/api/types/time"
 	"github.com/hexhoc/product-service/internal/entity"
 	"github.com/hexhoc/product-service/pkg/datasource/postgres"
 	"github.com/jackc/pgx/v4"
@@ -40,7 +39,7 @@ func (r *ProductRepository) FindAll(ctx context.Context) ([]*entity.Product, err
 	var products []*entity.Product
 	for rows.Next() {
 		var product entity.Product
-		mapModel(rows, &product)
+		r.rowMapper(rows, &product)
 		products = append(products, &product)
 
 	}
@@ -61,7 +60,7 @@ func (r *ProductRepository) FindById(ctx context.Context, id uint32) (*entity.Pr
 
 	var product entity.Product
 	for rows.Next() {
-		mapModel(rows, &product)
+		r.rowMapper(rows, &product)
 	}
 
 	defer rows.Close()
@@ -85,8 +84,8 @@ func (r *ProductRepository) Save(ctx context.Context, product *entity.Product) e
 		product.SellingPrice,
 		product.IsSale,
 		product.IsDeleted,
-		time.GetTimestamp,
-		time.GetTimestamp,
+		product.CreatedAt,
+		product.UpdatedAt,
 	)
 
 	if err != nil {
@@ -104,18 +103,19 @@ func (r *ProductRepository) SaveAll(ctx context.Context, products []*entity.Prod
 	return nil
 }
 
+// TODO: TEST
 func (r *ProductRepository) Update(ctx context.Context, id uint32, product *entity.Product) error {
 	query := `
-	UPDATE "products" SET 
-		"name" = $1
-		"intro" = $2
-		"description" = $3
-		"category_id" = $4
-		"original_price" = $5
-		"selling_price" = $6
-		"is_sale" = $7
-		"is_deleted" = $8
-		"updated_at" = $10
+	UPDATE products p SET 
+		'name' = $1
+		'intro' = $2
+		'description' = $3
+		'category_id' = $4
+		'original_price' = $5
+		'selling_price' = $6
+		'is_sale' = $7
+		'is_deleted' = $8
+		'updated_at' = $10
 	WHERE p.id = $11`
 
 	ct, err := r.db.Pool.Exec(
@@ -128,7 +128,7 @@ func (r *ProductRepository) Update(ctx context.Context, id uint32, product *enti
 		product.SellingPrice,
 		product.IsSale,
 		product.IsDeleted,
-		time.GetTimestamp,
+		product.UpdatedAt,
 	)
 
 	if err != nil {
@@ -142,12 +142,26 @@ func (r *ProductRepository) Update(ctx context.Context, id uint32, product *enti
 }
 
 func (r *ProductRepository) Delete(ctx context.Context, id uint32) error {
-	// r.ProductRepository.Delete(id)
+
+	query := `DELETE FROM products where products.id = $1`
+
+	ct, err := r.db.Pool.Exec(
+		ctx, query,
+		id,
+	)
+
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	log.Info(fmt.Sprintf("Product delete row affected %d", ct.RowsAffected()))
+
 	return nil
 }
 
-func mapModel(r pgx.Rows, product *entity.Product) {
-	err := r.Scan(
+func (r *ProductRepository) rowMapper(rows pgx.Rows, product *entity.Product) {
+	err := rows.Scan(
 		&product.Id,
 		&product.Name,
 		&product.Intro,
