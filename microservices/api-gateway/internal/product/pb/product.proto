@@ -2,18 +2,18 @@ syntax = "proto3";
 
 package product;
 
-option go_package = "./internal/pb";
+option go_package = "./internal/product/pb";
 
 service ProductService {
-  rpc FindAll(ProductRequest) returns (ProductResponse) {}
+  rpc FindAll(FindAllRequest) returns (FindAllResponse) {}
 }
 
-message ProductRequest {
+message FindAllRequest {
   uint32 Limit=1;
   uint32 Offset=2;
 }
 
-message ProductResponse {
+message FindAllResponse {
   repeated ProductDto products=1;
   string error = 2;
 }

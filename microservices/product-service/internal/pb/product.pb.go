@@ -20,7 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ProductRequest struct {
+type FindAllRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -29,8 +29,8 @@ type ProductRequest struct {
 	Offset uint32 `protobuf:"varint,2,opt,name=Offset,proto3" json:"Offset,omitempty"`
 }
 
-func (x *ProductRequest) Reset() {
-	*x = ProductRequest{}
+func (x *FindAllRequest) Reset() {
+	*x = FindAllRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_internal_pb_product_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -38,13 +38,13 @@ func (x *ProductRequest) Reset() {
 	}
 }
 
-func (x *ProductRequest) String() string {
+func (x *FindAllRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ProductRequest) ProtoMessage() {}
+func (*FindAllRequest) ProtoMessage() {}
 
-func (x *ProductRequest) ProtoReflect() protoreflect.Message {
+func (x *FindAllRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_pb_product_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -56,26 +56,26 @@ func (x *ProductRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ProductRequest.ProtoReflect.Descriptor instead.
-func (*ProductRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use FindAllRequest.ProtoReflect.Descriptor instead.
+func (*FindAllRequest) Descriptor() ([]byte, []int) {
 	return file_internal_pb_product_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ProductRequest) GetLimit() uint32 {
+func (x *FindAllRequest) GetLimit() uint32 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-func (x *ProductRequest) GetOffset() uint32 {
+func (x *FindAllRequest) GetOffset() uint32 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-type ProductResponse struct {
+type FindAllResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -84,8 +84,8 @@ type ProductResponse struct {
 	Error    string        `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 }
 
-func (x *ProductResponse) Reset() {
-	*x = ProductResponse{}
+func (x *FindAllResponse) Reset() {
+	*x = FindAllResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_internal_pb_product_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -93,13 +93,13 @@ func (x *ProductResponse) Reset() {
 	}
 }
 
-func (x *ProductResponse) String() string {
+func (x *FindAllResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ProductResponse) ProtoMessage() {}
+func (*FindAllResponse) ProtoMessage() {}
 
-func (x *ProductResponse) ProtoReflect() protoreflect.Message {
+func (x *FindAllResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_pb_product_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -111,19 +111,19 @@ func (x *ProductResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ProductResponse.ProtoReflect.Descriptor instead.
-func (*ProductResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use FindAllResponse.ProtoReflect.Descriptor instead.
+func (*FindAllResponse) Descriptor() ([]byte, []int) {
 	return file_internal_pb_product_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ProductResponse) GetProducts() []*ProductDto {
+func (x *FindAllResponse) GetProducts() []*ProductDto {
 	if x != nil {
 		return x.Products
 	}
 	return nil
 }
 
-func (x *ProductResponse) GetError() string {
+func (x *FindAllResponse) GetError() string {
 	if x != nil {
 		return x.Error
 	}
@@ -270,11 +270,11 @@ var File_internal_pb_product_proto protoreflect.FileDescriptor
 var file_internal_pb_product_proto_rawDesc = []byte{
 	0x0a, 0x19, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x70, 0x62, 0x2f, 0x70, 0x72,
 	0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x70, 0x72, 0x6f,
-	0x64, 0x75, 0x63, 0x74, 0x22, 0x3e, 0x0a, 0x0e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52,
+	0x64, 0x75, 0x63, 0x74, 0x22, 0x3e, 0x0a, 0x0e, 0x46, 0x69, 0x6e, 0x64, 0x41, 0x6c, 0x6c, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x05, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x12, 0x16, 0x0a, 0x06,
 	0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x06, 0x4f, 0x66,
-	0x66, 0x73, 0x65, 0x74, 0x22, 0x58, 0x0a, 0x0f, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52,
+	0x66, 0x73, 0x65, 0x74, 0x22, 0x58, 0x0a, 0x0f, 0x46, 0x69, 0x6e, 0x64, 0x41, 0x6c, 0x6c, 0x52,
 	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x08, 0x70, 0x72, 0x6f, 0x64, 0x75,
 	0x63, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x70, 0x72, 0x6f, 0x64,
 	0x75, 0x63, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x44, 0x74, 0x6f, 0x52, 0x08,
@@ -304,9 +304,9 @@ var file_internal_pb_product_proto_rawDesc = []byte{
 	0x18, 0x0c, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41,
 	0x74, 0x32, 0x50, 0x0a, 0x0e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x53, 0x65, 0x72, 0x76,
 	0x69, 0x63, 0x65, 0x12, 0x3e, 0x0a, 0x07, 0x46, 0x69, 0x6e, 0x64, 0x41, 0x6c, 0x6c, 0x12, 0x17,
-	0x2e, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74,
+	0x2e, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x46, 0x69, 0x6e, 0x64, 0x41, 0x6c, 0x6c,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63,
-	0x74, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x74, 0x2e, 0x46, 0x69, 0x6e, 0x64, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
 	0x65, 0x22, 0x00, 0x42, 0x0f, 0x5a, 0x0d, 0x2e, 0x2f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61,
 	0x6c, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
@@ -325,14 +325,14 @@ func file_internal_pb_product_proto_rawDescGZIP() []byte {
 
 var file_internal_pb_product_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_internal_pb_product_proto_goTypes = []interface{}{
-	(*ProductRequest)(nil),  // 0: product.ProductRequest
-	(*ProductResponse)(nil), // 1: product.ProductResponse
+	(*FindAllRequest)(nil),  // 0: product.FindAllRequest
+	(*FindAllResponse)(nil), // 1: product.FindAllResponse
 	(*ProductDto)(nil),      // 2: product.ProductDto
 }
 var file_internal_pb_product_proto_depIdxs = []int32{
-	2, // 0: product.ProductResponse.products:type_name -> product.ProductDto
-	0, // 1: product.ProductService.FindAll:input_type -> product.ProductRequest
-	1, // 2: product.ProductService.FindAll:output_type -> product.ProductResponse
+	2, // 0: product.FindAllResponse.products:type_name -> product.ProductDto
+	0, // 1: product.ProductService.FindAll:input_type -> product.FindAllRequest
+	1, // 2: product.ProductService.FindAll:output_type -> product.FindAllResponse
 	2, // [2:3] is the sub-list for method output_type
 	1, // [1:2] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -347,7 +347,7 @@ func file_internal_pb_product_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_internal_pb_product_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ProductRequest); i {
+			switch v := v.(*FindAllRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -359,7 +359,7 @@ func file_internal_pb_product_proto_init() {
 			}
 		}
 		file_internal_pb_product_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ProductResponse); i {
+			switch v := v.(*FindAllResponse); i {
 			case 0:
 				return &v.state
 			case 1:

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/hexhoc/product-service/internal/entity"
 
 	"github.com/hexhoc/product-service/internal/pb"
@@ -9,7 +10,7 @@ import (
 )
 
 type ProductInterface interface {
-	FindAll(ctx context.Context, productRequest *pb.ProductRequest) (*pb.ProductResponse, error)
+	FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error)
 	//FindById(ctx context.Context, id uint32) (*entity.Product, error)
 	//Save(ctx context.Context, product *entity.Product) error
 	//SaveAll(ctx context.Context, products []*entity.Product) error
@@ -26,11 +27,11 @@ func NewProductService(r repository.ProductInterface) *ProductService {
 	return &ProductService{productRepository: r}
 }
 
-func (s *ProductService) FindAll(ctx context.Context, ProductRequest *pb.ProductRequest) (*pb.ProductResponse, error) {
+func (s *ProductService) FindAll(ctx context.Context, ProductRequest *pb.FindAllRequest) (*pb.FindAllResponse, error) {
 
 	list, err := s.productRepository.FindAll(ctx)
 	if err != nil {
-		return &pb.ProductResponse{Products: nil, Error: err.Error()}, err
+		return &pb.FindAllResponse{Products: nil, Error: err.Error()}, err
 	}
 
 	var productsDto []*pb.ProductDto
@@ -38,7 +39,7 @@ func (s *ProductService) FindAll(ctx context.Context, ProductRequest *pb.Product
 		productsDto = append(productsDto, s.mapper(list[i]))
 	}
 
-	return &pb.ProductResponse{Products: productsDto, Error: ""}, nil
+	return &pb.FindAllResponse{Products: productsDto, Error: ""}, nil
 }
 
 //func (s *ProductService) FindById(ctx context.Context, id uint32) (*entity.Product, error) {
