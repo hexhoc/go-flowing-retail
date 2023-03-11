@@ -23,7 +23,10 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductServiceClient interface {
 	FindAll(ctx context.Context, in *FindAllRequest, opts ...grpc.CallOption) (*FindAllResponse, error)
+<<<<<<< HEAD
 	FindById(ctx context.Context, in *FindByIdRequest, opts ...grpc.CallOption) (*FindByIdResponse, error)
+=======
+>>>>>>> eaca3977967b745954e415c0eab7ce11569fc0a9
 }
 
 type productServiceClient struct {
@@ -57,7 +60,10 @@ func (c *productServiceClient) FindById(ctx context.Context, in *FindByIdRequest
 // for forward compatibility
 type ProductServiceServer interface {
 	FindAll(context.Context, *FindAllRequest) (*FindAllResponse, error)
+<<<<<<< HEAD
 	FindById(context.Context, *FindByIdRequest) (*FindByIdResponse, error)
+=======
+>>>>>>> eaca3977967b745954e415c0eab7ce11569fc0a9
 }
 
 // UnimplementedProductServiceServer should be embedded to have forward compatible implementations.
@@ -96,6 +102,7 @@ func _ProductService_FindAll_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProductServiceServer).FindAll(ctx, req.(*FindAllRequest))
+<<<<<<< HEAD
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -114,6 +121,8 @@ func _ProductService_FindById_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProductServiceServer).FindById(ctx, req.(*FindByIdRequest))
+=======
+>>>>>>> eaca3977967b745954e415c0eab7ce11569fc0a9
 	}
 	return interceptor(ctx, in, info, handler)
 }

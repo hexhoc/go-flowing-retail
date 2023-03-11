@@ -11,7 +11,11 @@ import (
 
 type ProductInterface interface {
 	FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error)
+<<<<<<< HEAD
 	FindById(ctx context.Context, ProductRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error)
+=======
+	//FindById(ctx context.Context, id uint32) (*entity.Product, error)
+>>>>>>> eaca3977967b745954e415c0eab7ce11569fc0a9
 	//Save(ctx context.Context, product *entity.Product) error
 	//SaveAll(ctx context.Context, products []*entity.Product) error
 	//Update(ctx context.Context, id uint32, product *entity.Product) error
