@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
+
 	"github.com/hexhoc/auth-service/config"
 	"github.com/hexhoc/auth-service/internal/db"
 	"github.com/hexhoc/auth-service/internal/pb"
 	"github.com/hexhoc/auth-service/internal/services"
 	"github.com/hexhoc/auth-service/internal/utils"
 	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
 func main() {

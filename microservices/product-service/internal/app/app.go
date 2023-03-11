@@ -3,11 +3,14 @@ package app
 import (
 	"fmt"
 	"github.com/hexhoc/product-service/config"
+	"github.com/hexhoc/product-service/internal/pb"
 	"github.com/hexhoc/product-service/internal/repository"
 	"github.com/hexhoc/product-service/internal/service"
 	"github.com/hexhoc/product-service/pkg/datasource/postgres"
 	"github.com/hexhoc/product-service/pkg/logger"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"net"
 )
 
 func Run(cfg *config.Config) {
@@ -25,8 +28,19 @@ func Run(cfg *config.Config) {
 	var productService service.ProductInterface = service.NewProductService(productRepository)
 	var productImageService service.ProductImageInterface = service.NewProductImageService(productImageRepository)
 
-	fmt.Println(productService)
 	fmt.Println(productImageService)
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterProductServiceServer(grpcServer, productService)
+	lis, err := net.Listen("tcp", cfg.Port)
+	if err != nil {
+		log.Fatalln("Failed to listing:", err)
+	}
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalln("Failed to serve:", err)
+	}
+
+	log.Info("Product service start on ", cfg.Port)
 
 	//product := &entity.Product{
 	//	Name:          "test",

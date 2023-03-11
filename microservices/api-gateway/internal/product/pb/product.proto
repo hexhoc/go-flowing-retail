@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./internal/pb";
+
+service ProductService {
+  rpc FindAll(ProductRequest) returns (ProductResponse) {}
+}
+
+message ProductRequest {
+  uint32 Limit=1;
+  uint32 Offset=2;
+}
+
+message ProductResponse {
+  repeated ProductDto products=1;
+  string error = 2;
+}
+
+
+message ProductDto {
+  uint32 Id=1;
+  string Name=2;
+  string Intro=3;
+  string Description=4;
+  uint32 CategoryId=5;
+  string Category=6;
+  double OriginalPrice=7;
+  double SellingPrice=8;
+  bool IsSale=9;
+  bool IsDeleted=10;
+  int64 CreatedAt=11;
+  int64 UpdatedAt=12;
+}
