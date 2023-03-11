@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/hexhoc/product-service/internal/entity"
 
 	"github.com/hexhoc/product-service/internal/pb"
@@ -9,7 +10,7 @@ import (
 )
 
 type ProductInterface interface {
-	FindAll(ctx context.Context, productRequest *pb.ProductRequest) (*pb.ProductResponse, error)
+	FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error)
 	//FindById(ctx context.Context, id uint32) (*entity.Product, error)
 	//Save(ctx context.Context, product *entity.Product) error
 	//SaveAll(ctx context.Context, products []*entity.Product) error

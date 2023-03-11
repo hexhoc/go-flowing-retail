@@ -9,7 +9,7 @@ import (
 )
 
 func FindAll(ctx *gin.Context, productClient pb.ProductServiceClient, limit uint32, offset uint32) {
-	productRequest := &pb.ProductRequest{Limit: limit, Offset: offset}
+	productRequest := &pb.FindAllRequest{Limit: limit, Offset: offset}
 	response, err := productClient.FindAll(context.Background(), productRequest)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
