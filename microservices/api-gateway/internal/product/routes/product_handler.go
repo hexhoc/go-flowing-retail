@@ -18,3 +18,14 @@ func FindAll(ctx *gin.Context, productClient pb.ProductServiceClient, limit uint
 
 	ctx.JSON(http.StatusCreated, response)
 }
+
+func FindById(ctx *gin.Context, productClient pb.ProductServiceClient, id uint32) {
+	productRequest := &pb.FindByIdRequest{Id: id}
+	response, err := productClient.FindById(context.Background(), productRequest)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, response)
+}

@@ -33,3 +33,8 @@ func (svc *ServiceClient) FindAll(ctx *gin.Context) {
 
 	routes.FindAll(ctx, svc.Client, uint32(limit), uint32(offset))
 }
+
+func (svc *ServiceClient) FindById(ctx *gin.Context) {
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	routes.FindById(ctx, svc.Client, uint32(id))
+}

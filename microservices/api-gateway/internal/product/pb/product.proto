@@ -6,6 +6,7 @@ option go_package = "./internal/product/pb";
 
 service ProductService {
   rpc FindAll(FindAllRequest) returns (FindAllResponse) {}
+  rpc FindById(FindByIdRequest) returns (FindByIdResponse) {}
 }
 
 message FindAllRequest {
@@ -13,11 +14,19 @@ message FindAllRequest {
   uint32 Offset=2;
 }
 
+message FindByIdRequest {
+  uint32 Id=1;
+}
+
+message FindByIdResponse {
+  ProductDto product=1;
+  string error = 2;
+}
+
 message FindAllResponse {
   repeated ProductDto products=1;
   string error = 2;
 }
-
 
 message ProductDto {
   uint32 Id=1;

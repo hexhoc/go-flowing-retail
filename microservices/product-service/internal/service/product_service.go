@@ -11,7 +11,7 @@ import (
 
 type ProductInterface interface {
 	FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error)
-	//FindById(ctx context.Context, id uint32) (*entity.Product, error)
+	FindById(ctx context.Context, ProductRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error)
 	//Save(ctx context.Context, product *entity.Product) error
 	//SaveAll(ctx context.Context, products []*entity.Product) error
 	//Update(ctx context.Context, id uint32, product *entity.Product) error
@@ -42,10 +42,15 @@ func (s *ProductService) FindAll(ctx context.Context, ProductRequest *pb.FindAll
 	return &pb.FindAllResponse{Products: productsDto, Error: ""}, nil
 }
 
-//func (s *ProductService) FindById(ctx context.Context, id uint32) (*entity.Product, error) {
-//	return s.productRepository.FindById(ctx, id)
-//}
-//
+func (s *ProductService) FindById(ctx context.Context, ProductRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error) {
+	e, err := s.productRepository.FindById(ctx, ProductRequest.GetId())
+	if err != nil {
+		return &pb.FindByIdResponse{Product: nil, Error: err.Error()}, err
+	}
+
+	return &pb.FindByIdResponse{Product: s.mapper(e), Error: ""}, nil
+}
+
 //func (s *ProductService) Save(ctx context.Context, product *entity.Product) error {
 //	return s.productRepository.Save(ctx, product)
 //}

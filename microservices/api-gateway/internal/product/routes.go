@@ -10,6 +10,7 @@ func RegisterRoutes(r *gin.Engine, c *config.Config) *ServiceClient {
 
 	routes := r.Group("/product")
 	routes.GET("/", svc.FindAll)
+	routes.GET("/:id", svc.FindById)
 
 	return svc
 }
