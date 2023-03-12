@@ -11,6 +11,10 @@ func RegisterRoutes(r *gin.Engine, c *config.Config) *ServiceClient {
 	routes := r.Group("/product")
 	routes.GET("/", svc.FindAll)
 	routes.GET("/:id", svc.FindById)
+	routes.POST("/", svc.Save)
+	routes.POST("/batch", svc.SaveAll)
+	routes.PUT("/", svc.Update)
+	routes.DELETE("/:id", svc.Delete)
 
 	return svc
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/hexhoc/product-service/internal/entity"
 
@@ -11,12 +12,11 @@ import (
 
 type ProductInterface interface {
 	FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error)
-	FindById(ctx context.Context, ProductRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error)
-	//FindById(ctx context.Context, id uint32) (*entity.Product, error)
-	//Save(ctx context.Context, product *entity.Product) error
-	//SaveAll(ctx context.Context, products []*entity.Product) error
-	//Update(ctx context.Context, id uint32, product *entity.Product) error
-	//Delete(ctx context.Context, id uint32) error
+	FindById(ctx context.Context, productRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error)
+	Save(ctx context.Context, productRequest *pb.SaveRequest) (*pb.SaveResponse, error)
+	SaveAll(ctx context.Context, productRequest *pb.SaveAllRequest) (*pb.SaveAllResponse, error)
+	Update(ctx context.Context, productRequest *pb.UpdateRequest) (*pb.StatusResponse, error)
+	Delete(ctx context.Context, productRequest *pb.DeleteRequest) (*pb.StatusResponse, error)
 }
 
 // ProductService implements product_grpc interface ProductServiceServer
@@ -28,47 +28,85 @@ func NewProductService(r repository.ProductInterface) *ProductService {
 	return &ProductService{productRepository: r}
 }
 
-func (s *ProductService) FindAll(ctx context.Context, ProductRequest *pb.FindAllRequest) (*pb.FindAllResponse, error) {
+func (s *ProductService) FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error) {
 
-	list, err := s.productRepository.FindAll(ctx)
+	// TODO: add limit and offset
+	list, err := s.productRepository.FindAll(ctx, productRequest.Limit, productRequest.Offset)
 	if err != nil {
 		return &pb.FindAllResponse{Products: nil, Error: err.Error()}, err
 	}
 
 	var productsDto []*pb.ProductDto
 	for i := 0; i < len(list); i++ {
-		productsDto = append(productsDto, s.mapper(list[i]))
+		productsDto = append(productsDto, s.mapperToDto(list[i]))
 	}
 
 	return &pb.FindAllResponse{Products: productsDto, Error: ""}, nil
 }
 
-func (s *ProductService) FindById(ctx context.Context, ProductRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error) {
-	e, err := s.productRepository.FindById(ctx, ProductRequest.GetId())
+func (s *ProductService) FindById(ctx context.Context, productRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error) {
+	e, err := s.productRepository.FindById(ctx, productRequest.GetId())
 	if err != nil {
 		return &pb.FindByIdResponse{Product: nil, Error: err.Error()}, err
 	}
 
-	return &pb.FindByIdResponse{Product: s.mapper(e), Error: ""}, nil
+	return &pb.FindByIdResponse{Product: s.mapperToDto(e), Error: ""}, nil
 }
 
-//func (s *ProductService) Save(ctx context.Context, product *entity.Product) error {
-//	return s.productRepository.Save(ctx, product)
-//}
-//
-//func (s *ProductService) SaveAll(ctx context.Context, products []*entity.Product) error {
-//	return s.productRepository.SaveAll(ctx, products)
-//}
-//
-//func (s *ProductService) Update(ctx context.Context, id uint32, product *entity.Product) error {
-//	return s.productRepository.Update(ctx, id, product)
-//}
-//
-//func (s *ProductService) Delete(ctx context.Context, id uint32) error {
-//	return s.productRepository.Delete(ctx, id)
-//}
+func (s *ProductService) Save(ctx context.Context, productRequest *pb.SaveRequest) (*pb.SaveResponse, error) {
+	//TODO: return id
+	err := s.productRepository.Save(ctx, s.mapperToEntity(productRequest.Product))
+	if err != nil {
+		return &pb.SaveResponse{Status: "Not okay", Error: err.Error()}, err
+	} else {
+		return &pb.SaveResponse{Status: "OK", Error: ""}, nil
+	}
+}
 
-func (s *ProductService) mapper(e *entity.Product) *pb.ProductDto {
+func (s *ProductService) SaveAll(ctx context.Context, productRequest *pb.SaveAllRequest) (*pb.SaveAllResponse, error) {
+	//TODO: return ids
+	var products []*entity.Product
+	productsDto := productRequest.Products
+	for i := 0; i < len(productsDto); i++ {
+		products = append(products, s.mapperToEntity(productsDto[i]))
+	}
+	err := s.productRepository.SaveAll(ctx, products)
+	if err != nil {
+		return &pb.SaveAllResponse{Status: "Not okay", Error: err.Error()}, err
+	} else {
+		return &pb.SaveAllResponse{Status: "OK", Error: ""}, nil
+	}
+}
+
+func (s *ProductService) Update(ctx context.Context, productRequest *pb.UpdateRequest) (*pb.StatusResponse, error) {
+	err := s.productRepository.Update(ctx, productRequest.Id, s.mapperToEntity(productRequest.Product))
+	if err != nil {
+		return &pb.StatusResponse{
+			Status: "NOT OK",
+			Error:  err.Error(),
+		}, err
+	}
+	return &pb.StatusResponse{
+		Status: "OK",
+		Error:  "",
+	}, nil
+}
+
+func (s *ProductService) Delete(ctx context.Context, productRequest *pb.DeleteRequest) (*pb.StatusResponse, error) {
+	err := s.productRepository.Delete(ctx, productRequest.Id)
+	if err != nil {
+		return &pb.StatusResponse{
+			Status: "NOT OK",
+			Error:  err.Error(),
+		}, err
+	}
+	return &pb.StatusResponse{
+		Status: "OK",
+		Error:  "",
+	}, nil
+}
+
+func (s *ProductService) mapperToDto(e *entity.Product) *pb.ProductDto {
 	dto := &pb.ProductDto{
 		Id:            e.Id,
 		Name:          e.Name,
@@ -85,4 +123,22 @@ func (s *ProductService) mapper(e *entity.Product) *pb.ProductDto {
 	}
 
 	return dto
+}
+
+func (s *ProductService) mapperToEntity(d *pb.ProductDto) *entity.Product {
+	e := &entity.Product{
+		Id:            d.Id,
+		Name:          d.Name,
+		Intro:         d.Intro,
+		Description:   d.Description,
+		CategoryId:    d.CategoryId,
+		OriginalPrice: d.OriginalPrice,
+		SellingPrice:  d.SellingPrice,
+		IsSale:        d.IsSale,
+		IsDeleted:     d.IsDeleted,
+		CreatedAt:     time.Unix(d.CreatedAt, 0),
+		UpdatedAt:     time.Unix(d.UpdatedAt, 0),
+	}
+
+	return e
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"github.com/hexhoc/product-service/internal/entity"
 	"github.com/hexhoc/product-service/pkg/datasource/postgres"
 	"github.com/jackc/pgx/v4"
@@ -10,7 +11,7 @@ import (
 )
 
 type ProductInterface interface {
-	FindAll(ctx context.Context) ([]*entity.Product, error)
+	FindAll(ctx context.Context, limit uint32, offset uint32) ([]*entity.Product, error)
 	FindById(ctx context.Context, id uint32) (*entity.Product, error)
 	Save(ctx context.Context, product *entity.Product) error
 	SaveAll(ctx context.Context, products []*entity.Product) error
@@ -26,10 +27,10 @@ func NewProductRepository(db *postgres.Postgres) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (r *ProductRepository) FindAll(ctx context.Context) ([]*entity.Product, error) {
-	query := "SELECT * FROM products"
+func (r *ProductRepository) FindAll(ctx context.Context, limit uint32, offset uint32) ([]*entity.Product, error) {
+	query := "SELECT * FROM products LIMIT $1 OFFSET $2"
 
-	rows, err := r.db.Pool.Query(ctx, query)
+	rows, err := r.db.Pool.Query(ctx, query, limit, offset)
 
 	if err != nil {
 		log.Error(err)
@@ -108,16 +109,17 @@ func (r *ProductRepository) SaveAll(ctx context.Context, products []*entity.Prod
 func (r *ProductRepository) Update(ctx context.Context, id uint32, product *entity.Product) error {
 	query := `
 	UPDATE products p SET 
-		'name' = $1
-		'intro' = $2
-		'description' = $3
-		'category_id' = $4
-		'original_price' = $5
-		'selling_price' = $6
-		'is_sale' = $7
-		'is_deleted' = $8
-		'updated_at' = $10
-	WHERE p.id = $11`
+		name = $1,
+		intro = $2,
+		description = $3,
+		category_id = $4,
+		original_price = $5,
+		selling_price = $6,
+		is_sale = $7,
+		is_deleted = $8,
+		updated_at = $9
+	WHERE p.id = $10
+	`
 
 	ct, err := r.db.Pool.Exec(
 		ctx, query,
@@ -130,6 +132,7 @@ func (r *ProductRepository) Update(ctx context.Context, id uint32, product *enti
 		product.IsSale,
 		product.IsDeleted,
 		product.UpdatedAt,
+		id,
 	)
 
 	if err != nil {

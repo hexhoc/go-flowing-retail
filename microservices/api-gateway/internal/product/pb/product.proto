@@ -7,11 +7,20 @@ option go_package = "./internal/product/pb";
 service ProductService {
   rpc FindAll(FindAllRequest) returns (FindAllResponse) {}
   rpc FindById(FindByIdRequest) returns (FindByIdResponse) {}
+  rpc Save(SaveRequest) returns (SaveResponse) {}
+  rpc SaveAll(SaveAllRequest) returns (SaveAllResponse) {}
+  rpc Update(UpdateRequest) returns (StatusResponse) {}
+  rpc Delete(DeleteRequest) returns (StatusResponse) {}
 }
 
 message FindAllRequest {
   uint32 Limit=1;
   uint32 Offset=2;
+}
+
+message FindAllResponse {
+  repeated ProductDto products=1;
+  string error=2;
 }
 
 message FindByIdRequest {
@@ -20,12 +29,39 @@ message FindByIdRequest {
 
 message FindByIdResponse {
   ProductDto product=1;
-  string error = 2;
+  string error=2;
 }
 
-message FindAllResponse {
+message SaveRequest {
+  ProductDto product=1;
+}
+
+message SaveResponse {
+  string status=1;
+  string error=2;
+}
+
+message SaveAllRequest {
   repeated ProductDto products=1;
-  string error = 2;
+}
+
+message SaveAllResponse {
+  string status=1;
+  string error=2;
+}
+
+message UpdateRequest {
+  uint32 Id=1;
+  ProductDto product=2;
+}
+
+message StatusResponse {
+  string status=1;
+  string error=2;
+}
+
+message DeleteRequest {
+  uint32 Id=1;
 }
 
 message ProductDto {
