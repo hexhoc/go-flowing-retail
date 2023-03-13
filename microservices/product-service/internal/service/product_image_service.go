@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+
 	"github.com/hexhoc/product-service/internal/entity"
+	"github.com/hexhoc/product-service/internal/pb"
 	"github.com/hexhoc/product-service/internal/repository"
 )
 
 type ProductImageInterface interface {
-	GetAllByProductId(ctx context.Context, id uint32) ([]*entity.ProductImage, error)
-	UploadImageToProduct(ctx context.Context, file []byte, productId uint32) error
-	DeleteByNameAndProductId(ctx context.Context, imageName string, productId uint32) error
-	compressBytes(data []byte) []byte
-	decompressBytes(data []byte) []byte
+	GetAllByProductId(ctx context.Context, request *pb.GetAllRequest) (*pb.GetAllResponse, error)
+	UploadImageToProduct(ctx context.Context, request *pb.UploadImageRequest) (*pb.UploadImageResponse, error)
+	DeleteByNameAndProductId(ctx context.Context, request *pb.DeleteImageRequest) (*pb.DeleteImageResponse, error)
 }
 
 type ProductImageService struct {
@@ -24,22 +24,60 @@ func NewProductImageService(r repository.ProductImageInterface) *ProductImageSer
 	return &ProductImageService{productImageRepository: r}
 }
 
-func (s *ProductImageService) GetAllByProductId(ctx context.Context, id uint32) ([]*entity.ProductImage, error) {
-	return s.productImageRepository.FindAllByProductId(ctx, id)
-}
-
-func (s *ProductImageService) UploadImageToProduct(ctx context.Context, file []byte, productId uint32) error {
-	// TODO: Add filename
-	var productImage *entity.ProductImage = &entity.ProductImage{
-		ProductId:  productId,
-		Name:       "",
-		ImageBytes: s.compressBytes(file),
+func (s *ProductImageService) GetAllByProductId(ctx context.Context, request *pb.GetAllRequest) (*pb.GetAllResponse, error) {
+	images, err := s.productImageRepository.FindAllByProductId(ctx, request.Id)
+	if err != nil {
+		return &pb.GetAllResponse{
+			Products: []*pb.ProductImageDto{},
+			Error:    err.Error(),
+		}, err
 	}
-	return s.productImageRepository.Save(ctx, productImage)
+
+	var imagesDto []*pb.ProductImageDto
+	for i := 0; i < len(images); i++ {
+		imagesDto = append(imagesDto, s.mapperToDto(images[0]))
+	}
+
+	return &pb.GetAllResponse{
+		Products: imagesDto,
+		Error:    "",
+	}, nil
 }
 
-func (s *ProductImageService) DeleteByNameAndProductId(ctx context.Context, imageName string, productId uint32) error {
-	return s.productImageRepository.DeleteByNameAndProductId(ctx, imageName, productId)
+func (s *ProductImageService) UploadImageToProduct(ctx context.Context, request *pb.UploadImageRequest) (*pb.UploadImageResponse, error) {
+	var productImage *entity.ProductImage = &entity.ProductImage{
+		ProductId:  request.ProductId,
+		Name:       request.Filename,
+		ImageBytes: s.compressBytes(request.File),
+	}
+
+	err := s.productImageRepository.Save(ctx, productImage)
+	if err != nil {
+		return &pb.UploadImageResponse{
+			Status: "NOT OK",
+			Error:  err.Error(),
+		}, err
+	}
+
+	return &pb.UploadImageResponse{
+		Status: "OK",
+		Error:  "",
+	}, nil
+}
+
+func (s *ProductImageService) DeleteByNameAndProductId(ctx context.Context, request *pb.DeleteImageRequest) (*pb.DeleteImageResponse, error) {
+	err := s.productImageRepository.DeleteByNameAndProductId(ctx, request.ImageName, request.ProductId)
+	if err != nil {
+		return &pb.DeleteImageResponse{
+			Status: "NOT OK",
+			Error:  err.Error(),
+		}, err
+	}
+
+	return &pb.DeleteImageResponse{
+		Status: "OK",
+		Error:  "",
+	}, nil
 }
 
 func (s *ProductImageService) compressBytes(data []byte) []byte {
@@ -52,6 +90,7 @@ func (s *ProductImageService) compressBytes(data []byte) []byte {
 	return buf.Bytes()
 }
 
+// TODO: use decompress
 func (s *ProductImageService) decompressBytes(data []byte) []byte {
 	// Initialize gzip
 	buf := new(bytes.Buffer)
@@ -60,4 +99,12 @@ func (s *ProductImageService) decompressBytes(data []byte) []byte {
 	gzWriter.Close()
 	// Convert buffer to
 	return buf.Bytes()
+}
+
+func (s *ProductImageService) mapperToDto(e *entity.ProductImage) *pb.ProductImageDto {
+	return &pb.ProductImageDto{
+		Id:        e.Id,
+		Name:      e.Name,
+		ProductId: e.ProductId,
+	}
 }

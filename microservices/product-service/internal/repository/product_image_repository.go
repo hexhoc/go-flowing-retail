@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"github.com/hexhoc/product-service/internal/entity"
 	"github.com/hexhoc/product-service/pkg/datasource/postgres"
 	"github.com/jackc/pgx/v4"
@@ -13,7 +14,6 @@ type ProductImageInterface interface {
 	FindAllByProductId(ctx context.Context, id uint32) ([]*entity.ProductImage, error)
 	Save(ctx context.Context, product *entity.ProductImage) error
 	DeleteByNameAndProductId(ctx context.Context, imageName string, productId uint32) error
-	rowMapper(rows pgx.Rows, productImage *entity.ProductImage)
 }
 
 type ProductImageRepository struct {

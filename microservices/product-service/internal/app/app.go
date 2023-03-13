@@ -2,6 +2,8 @@ package app
 
 import (
 	"fmt"
+	"net"
+
 	"github.com/hexhoc/product-service/config"
 	"github.com/hexhoc/product-service/internal/pb"
 	"github.com/hexhoc/product-service/internal/repository"
@@ -10,7 +12,6 @@ import (
 	"github.com/hexhoc/product-service/pkg/logger"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"net"
 )
 
 func Run(cfg *config.Config) {
@@ -32,6 +33,7 @@ func Run(cfg *config.Config) {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterProductServiceServer(grpcServer, productService)
+	pb.RegisterProductImageServiceServer(grpcServer, productImageService)
 	lis, err := net.Listen("tcp", cfg.Port)
 	if err != nil {
 		log.Fatalln("Failed to listing:", err)
@@ -42,40 +44,4 @@ func Run(cfg *config.Config) {
 
 	log.Info("Product service start on ", cfg.Port)
 
-	//product := &entity.Product{
-	//	Name:          "test",
-	//	Intro:         "test",
-	//	Description:   "test",
-	//	CategoryId:    1,
-	//	Category:      entity.Category{},
-	//	OriginalPrice: 10,
-	//	SellingPrice:  10,
-	//	IsSale:        true,
-	//	IsDeleted:     false,
-	//	CreatedAt:     time.Now(),
-	//	UpdatedAt:     time.Now(),
-	//}
-	//err = productService.Save(context.Background(), product)
-	//if err != nil {
-	//	log.Error(err)
-	//}
-	//
-	//products, err := productService.FindAll(context.Background())
-	//if err != nil {
-	//	log.Error(err)
-	//}
-	//for i := 0; i < len(products); i++ {
-	//	fmt.Println(products[i])
-	//}
-	//
-	//createProduct, err := productService.FindById(context.Background(), 8)
-	//if err != nil {
-	//	log.Error(err)
-	//}
-	//fmt.Println(createProduct)
-	//
-	//err = productService.Delete(context.Background(), 8)
-	//if err != nil {
-	//	log.Error(err)
-	//}
 }

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./internal/product/pb";
+
+service ProductImageService {
+  rpc GetAllByProductId(GetAllRequest) returns (GetAllResponse) {}
+  rpc UploadImageToProduct(UploadImageRequest) returns (UploadImageResponse) {}
+  rpc DeleteByNameAndProductId(DeleteImageRequest) returns (DeleteImageResponse) {}
+}
+
+message GetAllRequest {
+  uint32 Id=1;
+}
+
+message GetAllResponse {
+  repeated ProductImageDto products=1;
+  string error=2;
+}
+
+message UploadImageRequest {
+  bytes file=1;
+  string filename=2;
+  uint32 ProductId=3;
+}
+
+
+message UploadImageResponse {
+  string Status=1;
+  string Error=2;
+}
+
+message DeleteImageRequest {
+  string ImageName=1;
+  uint32 ProductId=2;
+}
+
+message DeleteImageResponse {
+  string Status=1;
+  string Error=2;
+}
+
+message ProductImageDto {
+  uint32 Id=1;
+  string Name=2;
+  uint32 ProductId=3;
+}
+

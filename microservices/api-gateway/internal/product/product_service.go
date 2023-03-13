@@ -2,33 +2,26 @@ package product
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hexhoc/api-gateway/config"
 	"github.com/hexhoc/api-gateway/internal/product/pb"
 	"google.golang.org/grpc"
 )
 
-type ServiceClient struct {
+type ProductService struct {
 	Client pb.ProductServiceClient
 }
 
-func NewServiceClient(cfg *config.Config) *ServiceClient {
-	cc, err := grpc.Dial(cfg.ProductServiceUrl, grpc.WithInsecure())
-	if err != nil {
-		fmt.Println("Could not connect to productServiceClient: ", err)
-	}
-
+func NewProductService(cc *grpc.ClientConn) *ProductService {
 	productServiceClient := pb.NewProductServiceClient(cc)
-	serviceClient := &ServiceClient{Client: productServiceClient}
+	serviceClient := &ProductService{Client: productServiceClient}
 
 	return serviceClient
 }
 
-func (svc *ServiceClient) FindAll(ctx *gin.Context) {
+func (svc *ProductService) FindAll(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
 
@@ -42,7 +35,7 @@ func (svc *ServiceClient) FindAll(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-func (svc *ServiceClient) FindById(ctx *gin.Context) {
+func (svc *ProductService) FindById(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 
 	productRequest := &pb.FindByIdRequest{Id: uint32(id)}
@@ -55,7 +48,7 @@ func (svc *ServiceClient) FindById(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-func (svc *ServiceClient) Save(ctx *gin.Context) {
+func (svc *ProductService) Save(ctx *gin.Context) {
 	var requestBody pb.SaveRequest
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -70,7 +63,7 @@ func (svc *ServiceClient) Save(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-func (svc *ServiceClient) SaveAll(ctx *gin.Context) {
+func (svc *ProductService) SaveAll(ctx *gin.Context) {
 	var requestBody pb.SaveAllRequest
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -86,7 +79,7 @@ func (svc *ServiceClient) SaveAll(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-func (svc *ServiceClient) Update(ctx *gin.Context) {
+func (svc *ProductService) Update(ctx *gin.Context) {
 	var requestBody pb.UpdateRequest
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -102,7 +95,7 @@ func (svc *ServiceClient) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-func (svc *ServiceClient) Delete(ctx *gin.Context) {
+func (svc *ProductService) Delete(ctx *gin.Context) {
 
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	request := &pb.DeleteRequest{Id: uint32(id)}
