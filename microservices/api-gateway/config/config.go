@@ -6,6 +6,7 @@ type Config struct {
 	Port              string `mapstructure:"PORT"`
 	AuthServiceUrl    string `mapstructure:"AUTH_SERVICE_URL"`
 	ProductServiceUrl string `mapstructure:"PRODUCT_SERVICE_URL"`
+	OrderServiceUrl   string `mapstructure:"ORDER_SERVICE_URL"`
 }
 
 func LoadConfig() (*Config, error) {

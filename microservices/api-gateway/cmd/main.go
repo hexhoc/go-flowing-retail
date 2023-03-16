@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hexhoc/api-gateway/config"
 	"github.com/hexhoc/api-gateway/internal/auth"
+	"github.com/hexhoc/api-gateway/internal/order"
 	"github.com/hexhoc/api-gateway/internal/product"
 	"google.golang.org/grpc"
 )
@@ -28,15 +29,20 @@ func main() {
 	if err != nil {
 		fmt.Println("Could not connect to productServiceClient: ", err)
 	}
+
+	orderSvcConnect, err := grpc.Dial(cfg.OrderServiceUrl, grpc.WithInsecure())
+	if err != nil {
+		fmt.Println("Could not connect to orderServiceClient: ", err)
+	}
 	authSvc := auth.NewAuthService(authSvcConnect)
 	middleware := auth.NewAuthMiddleware(authSvc)
 	productSvc := product.NewProductService(productSvcConnect)
 	imageSvc := product.NewImageService(productSvcConnect)
+	orderSvc := order.NewOrderService(orderSvcConnect)
 
 	auth.RegisterRoutes(r, authSvc)
 	product.RegisterRoutes(r, middleware, productSvc, imageSvc)
-
-	fmt.Println("Starting api gateways")
+	order.RegisterRoutes(r, middleware, orderSvc)
 
 	r.Run(cfg.Port)
 }
