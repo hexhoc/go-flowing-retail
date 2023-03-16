@@ -24,9 +24,7 @@ func Run(cfg *config.Config) {
 	defer pg.Close()
 
 	orderRepository := repository.NewOrderRepository(pg)
-	orderItemRepository := repository.NewOrderItemRepository(pg)
 	orderService := service.NewOrderService(orderRepository)
-	orderItemService := service.NewOrderItemService(orderItemRepository)
 
 	grpcServer := grpc.NewServer()
 	// pb.RegisterProductServiceServer(grpcServer, productService)
@@ -42,6 +40,5 @@ func Run(cfg *config.Config) {
 	log.Info("Order service start on ", cfg.Port)
 
 	fmt.Println(orderService)
-	fmt.Println(orderItemService)
 
 }

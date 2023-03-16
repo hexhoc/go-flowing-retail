@@ -62,7 +62,7 @@ message OrderDto {
 
 message OrderItemDto {
   string Id=1;
-  string ProductId=2;
+  uint32 ProductId=2;
   uint32 Quantity=3;
   double Price=4;
 }

@@ -11,12 +11,12 @@ import (
 )
 
 type ProductInterface interface {
-	FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error)
-	FindById(ctx context.Context, productRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error)
-	Save(ctx context.Context, productRequest *pb.SaveRequest) (*pb.SaveResponse, error)
-	SaveAll(ctx context.Context, productRequest *pb.SaveAllRequest) (*pb.SaveAllResponse, error)
-	Update(ctx context.Context, productRequest *pb.UpdateRequest) (*pb.StatusResponse, error)
-	Delete(ctx context.Context, productRequest *pb.DeleteRequest) (*pb.StatusResponse, error)
+	FindAll(ctx context.Context, request *pb.FindAllRequest) (*pb.FindAllResponse, error)
+	FindById(ctx context.Context, request *pb.FindByIdRequest) (*pb.FindByIdResponse, error)
+	Save(ctx context.Context, request *pb.SaveRequest) (*pb.SaveResponse, error)
+	SaveAll(ctx context.Context, request *pb.SaveAllRequest) (*pb.SaveAllResponse, error)
+	Update(ctx context.Context, request *pb.UpdateRequest) (*pb.StatusResponse, error)
+	Delete(ctx context.Context, request *pb.DeleteRequest) (*pb.StatusResponse, error)
 }
 
 // ProductService implements product_grpc interface ProductServiceServer
@@ -28,10 +28,10 @@ func NewProductService(r repository.ProductInterface) *ProductService {
 	return &ProductService{productRepository: r}
 }
 
-func (s *ProductService) FindAll(ctx context.Context, productRequest *pb.FindAllRequest) (*pb.FindAllResponse, error) {
+func (s *ProductService) FindAll(ctx context.Context, request *pb.FindAllRequest) (*pb.FindAllResponse, error) {
 
 	// TODO: add limit and offset
-	list, err := s.productRepository.FindAll(ctx, productRequest.Limit, productRequest.Offset)
+	list, err := s.productRepository.FindAll(ctx, request.Limit, request.Offset)
 	if err != nil {
 		return &pb.FindAllResponse{Products: nil, Error: err.Error()}, err
 	}
@@ -44,8 +44,8 @@ func (s *ProductService) FindAll(ctx context.Context, productRequest *pb.FindAll
 	return &pb.FindAllResponse{Products: productsDto, Error: ""}, nil
 }
 
-func (s *ProductService) FindById(ctx context.Context, productRequest *pb.FindByIdRequest) (*pb.FindByIdResponse, error) {
-	e, err := s.productRepository.FindById(ctx, productRequest.GetId())
+func (s *ProductService) FindById(ctx context.Context, request *pb.FindByIdRequest) (*pb.FindByIdResponse, error) {
+	e, err := s.productRepository.FindById(ctx, request.GetId())
 	if err != nil {
 		return &pb.FindByIdResponse{Product: nil, Error: err.Error()}, err
 	}
@@ -53,9 +53,9 @@ func (s *ProductService) FindById(ctx context.Context, productRequest *pb.FindBy
 	return &pb.FindByIdResponse{Product: s.mapperToDto(e), Error: ""}, nil
 }
 
-func (s *ProductService) Save(ctx context.Context, productRequest *pb.SaveRequest) (*pb.SaveResponse, error) {
+func (s *ProductService) Save(ctx context.Context, request *pb.SaveRequest) (*pb.SaveResponse, error) {
 	//TODO: return id
-	err := s.productRepository.Save(ctx, s.mapperToEntity(productRequest.Product))
+	err := s.productRepository.Save(ctx, s.mapperToEntity(request.Product))
 	if err != nil {
 		return &pb.SaveResponse{Status: "Not okay", Error: err.Error()}, err
 	} else {
@@ -63,10 +63,10 @@ func (s *ProductService) Save(ctx context.Context, productRequest *pb.SaveReques
 	}
 }
 
-func (s *ProductService) SaveAll(ctx context.Context, productRequest *pb.SaveAllRequest) (*pb.SaveAllResponse, error) {
+func (s *ProductService) SaveAll(ctx context.Context, request *pb.SaveAllRequest) (*pb.SaveAllResponse, error) {
 	//TODO: return ids
 	var products []*entity.Product
-	productsDto := productRequest.Products
+	productsDto := request.Products
 	for i := 0; i < len(productsDto); i++ {
 		products = append(products, s.mapperToEntity(productsDto[i]))
 	}
@@ -78,8 +78,8 @@ func (s *ProductService) SaveAll(ctx context.Context, productRequest *pb.SaveAll
 	}
 }
 
-func (s *ProductService) Update(ctx context.Context, productRequest *pb.UpdateRequest) (*pb.StatusResponse, error) {
-	err := s.productRepository.Update(ctx, productRequest.Id, s.mapperToEntity(productRequest.Product))
+func (s *ProductService) Update(ctx context.Context, request *pb.UpdateRequest) (*pb.StatusResponse, error) {
+	err := s.productRepository.Update(ctx, request.Id, s.mapperToEntity(request.Product))
 	if err != nil {
 		return &pb.StatusResponse{
 			Status: "NOT OK",
@@ -92,8 +92,8 @@ func (s *ProductService) Update(ctx context.Context, productRequest *pb.UpdateRe
 	}, nil
 }
 
-func (s *ProductService) Delete(ctx context.Context, productRequest *pb.DeleteRequest) (*pb.StatusResponse, error) {
-	err := s.productRepository.Delete(ctx, productRequest.Id)
+func (s *ProductService) Delete(ctx context.Context, request *pb.DeleteRequest) (*pb.StatusResponse, error) {
+	err := s.productRepository.Delete(ctx, request.Id)
 	if err != nil {
 		return &pb.StatusResponse{
 			Status: "NOT OK",
