@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./internal/pb";
+
+service OrderService {
+  rpc FindAll(FindAllRequest) returns (FindAllResponse) {}
+  rpc FindById(FindByIdRequest) returns (FindByIdResponse) {}
+  rpc Save(SaveRequest) returns (StatusResponse) {}
+  rpc Update(UpdateRequest) returns (StatusResponse) {}
+  rpc Delete(DeleteRequest) returns (StatusResponse) {}
+}
+
+message FindAllRequest {
+  uint32 Limit=1;
+  uint32 Offset=2;
+}
+  
+message FindAllResponse {
+  repeated OrderDto orders=1;
+  string error=2;
+}
+  
+message FindByIdRequest {
+  string Id=1;
+}
+  
+message FindByIdResponse {
+  OrderDto order=1;
+  string error=2;
+}
+  
+message SaveRequest {
+  OrderDto order=1;
+}
+  
+message StatusResponse {
+  string status=1;
+  string error=2;
+}
+  
+message UpdateRequest {
+  string Id=1;
+  OrderDto order=2;
+}
+
+message DeleteRequest {
+  string Id=1;
+}
+  
+message OrderDto {
+  string Id=1;
+  uint32 CustomerId=2;
+  string Address=3;
+  uint32 Status=4;
+  bool IsDeleted=5;
+  int64 CreatedAt=6;
+  int64 UpdatedAt=7;
+  repeated OrderItemDto OrderItems=8;
+}
+
+message OrderItemDto {
+  string Id=1;
+  string ProductId=2;
+  uint32 Quantity=3;
+  double Price=4;
+}

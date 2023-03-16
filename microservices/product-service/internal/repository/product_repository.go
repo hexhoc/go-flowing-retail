@@ -27,49 +27,49 @@ func NewProductRepository(db *postgres.Postgres) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
+// TODO: унифицировать здесь все методы как в order-service
+// TODO: Добавить транзакции БД
 func (r *ProductRepository) FindAll(ctx context.Context, limit uint32, offset uint32) ([]*entity.Product, error) {
 	query := "SELECT * FROM products LIMIT $1 OFFSET $2"
 
 	rows, err := r.db.Pool.Query(ctx, query, limit, offset)
-
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
-
-	var products []*entity.Product
-	for rows.Next() {
-		var product entity.Product
-		r.rowMapper(rows, &product)
-		products = append(products, &product)
-
-	}
 	defer rows.Close()
 
-	return products, nil
+	var list []*entity.Product
+	for rows.Next() {
+		var item *entity.Product
+		item = r.rowMapper(rows)
+		list = append(list, item)
+
+	}
+
+	return list, nil
 }
 
 func (r *ProductRepository) FindById(ctx context.Context, id uint32) (*entity.Product, error) {
 	query := "SELECT * FROM products p WHERE p.id = $1"
 
 	rows, err := r.db.Pool.Query(ctx, query, id)
-
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
 
-	var product entity.Product
-	for rows.Next() {
-		r.rowMapper(rows, &product)
-	}
-
 	defer rows.Close()
 
-	return &product, nil
+	var item *entity.Product
+	for rows.Next() {
+		item = r.rowMapper(rows)
+	}
+
+	return item, nil
 }
 
-func (r *ProductRepository) Save(ctx context.Context, product *entity.Product) error {
+func (r *ProductRepository) Save(ctx context.Context, item *entity.Product) error {
 	query := `
 	INSERT INTO products(name, intro, description, category_id, original_price, selling_price, is_sale, is_deleted, created_at, updated_at) 
 	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
@@ -77,16 +77,16 @@ func (r *ProductRepository) Save(ctx context.Context, product *entity.Product) e
 
 	ct, err := r.db.Pool.Exec(
 		ctx, query,
-		product.Name,
-		product.Intro,
-		product.Description,
-		product.CategoryId,
-		product.OriginalPrice,
-		product.SellingPrice,
-		product.IsSale,
-		product.IsDeleted,
-		product.CreatedAt,
-		product.UpdatedAt,
+		item.Name,
+		item.Intro,
+		item.Description,
+		item.CategoryId,
+		item.OriginalPrice,
+		item.SellingPrice,
+		item.IsSale,
+		item.IsDeleted,
+		item.CreatedAt,
+		item.UpdatedAt,
 	)
 
 	if err != nil {
@@ -99,14 +99,14 @@ func (r *ProductRepository) Save(ctx context.Context, product *entity.Product) e
 	return nil
 }
 
-func (r *ProductRepository) SaveAll(ctx context.Context, products []*entity.Product) error {
+func (r *ProductRepository) SaveAll(ctx context.Context, list []*entity.Product) error {
 	//TODO: Implement
 	//r.ProductRepository.SaveAll(products)
 	return nil
 }
 
 // TODO: TEST
-func (r *ProductRepository) Update(ctx context.Context, id uint32, product *entity.Product) error {
+func (r *ProductRepository) Update(ctx context.Context, id uint32, item *entity.Product) error {
 	query := `
 	UPDATE products p SET 
 		name = $1,
@@ -123,15 +123,15 @@ func (r *ProductRepository) Update(ctx context.Context, id uint32, product *enti
 
 	ct, err := r.db.Pool.Exec(
 		ctx, query,
-		product.Name,
-		product.Intro,
-		product.Description,
-		product.CategoryId,
-		product.OriginalPrice,
-		product.SellingPrice,
-		product.IsSale,
-		product.IsDeleted,
-		product.UpdatedAt,
+		item.Name,
+		item.Intro,
+		item.Description,
+		item.CategoryId,
+		item.OriginalPrice,
+		item.SellingPrice,
+		item.IsSale,
+		item.IsDeleted,
+		item.UpdatedAt,
 		id,
 	)
 
@@ -164,23 +164,25 @@ func (r *ProductRepository) Delete(ctx context.Context, id uint32) error {
 	return nil
 }
 
-func (r *ProductRepository) rowMapper(rows pgx.Rows, product *entity.Product) {
+func (r *ProductRepository) rowMapper(rows pgx.Rows) *entity.Product {
+	var item entity.Product
 	err := rows.Scan(
-		&product.Id,
-		&product.Name,
-		&product.Intro,
-		&product.Description,
-		&product.CategoryId,
-		&product.OriginalPrice,
-		&product.SellingPrice,
-		&product.IsSale,
-		&product.IsDeleted,
-		&product.CreatedAt,
-		&product.UpdatedAt,
+		&item.Id,
+		&item.Name,
+		&item.Intro,
+		&item.Description,
+		&item.CategoryId,
+		&item.OriginalPrice,
+		&item.SellingPrice,
+		&item.IsSale,
+		&item.IsDeleted,
+		&item.CreatedAt,
+		&item.UpdatedAt,
 	)
 
 	if err != nil {
 		log.Error(fmt.Errorf("error while iterating dataset %w", err))
 	}
 
+	return &item
 }

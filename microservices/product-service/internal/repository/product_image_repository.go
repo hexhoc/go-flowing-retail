@@ -28,19 +28,17 @@ func (r *ProductImageRepository) FindAllByProductId(ctx context.Context, id uint
 	query := "SELECT * FROM product_images p WHERE p.id = $1"
 
 	rows, err := r.db.Pool.Query(ctx, query, id)
-
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
+	defer rows.Close()
 
 	var products []*entity.ProductImage
 	for rows.Next() {
-		var productImage entity.ProductImage
-		r.rowMapper(rows, &productImage)
-		products = append(products, &productImage)
+		var productImage *entity.ProductImage = r.rowMapper(rows)
+		products = append(products, productImage)
 	}
-	defer rows.Close()
 
 	return products, nil
 }
@@ -88,16 +86,19 @@ func (r *ProductImageRepository) DeleteByNameAndProductId(ctx context.Context, i
 	return nil
 }
 
-func (r *ProductImageRepository) rowMapper(rows pgx.Rows, productImage *entity.ProductImage) {
+func (r *ProductImageRepository) rowMapper(rows pgx.Rows) *entity.ProductImage {
+	var item entity.ProductImage
 	err := rows.Scan(
-		&productImage.Id,
-		&productImage.ProductId,
-		&productImage.Name,
-		&productImage.ImageBytes,
+		&item.Id,
+		&item.ProductId,
+		&item.Name,
+		&item.ImageBytes,
 	)
 
 	if err != nil {
 		log.Error(fmt.Errorf("error while iterating dataset %w", err))
 	}
+
+	return &item
 
 }

@@ -8,4 +8,6 @@ export PGUSER=postgres
 psql -v ON_ERROR_STOP=1 -f '/workdir/migration/1_init.sql' || exit $?
 export PGDATABASE=product_service
 psql -v ON_ERROR_STOP=1 -f '/workdir/migration/2_product_service.sql' || exit $?
+export PGDATABASE=order_service
+psql -v ON_ERROR_STOP=1 -f '/workdir/migration/3_order_service.sql' || exit $?
 export PGDATABASE=postgres
