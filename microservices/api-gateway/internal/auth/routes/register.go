@@ -17,13 +17,13 @@ func Register(ctx *gin.Context, authClient pb.AuthServiceClient) {
 	request := RegisterRequestBody{}
 	err := ctx.BindJSON(&request)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
 	response, err := authClient.Register(context.Background(), &pb.RegisterRequest{Email: request.Email, Password: request.Password})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 

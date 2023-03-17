@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/hexhoc/order-service/config"
+	"github.com/hexhoc/order-service/internal/pb"
 	"github.com/hexhoc/order-service/internal/repository"
 	"github.com/hexhoc/order-service/internal/service"
 	"github.com/hexhoc/order-service/pkg/datasource/postgres"
@@ -27,7 +28,7 @@ func Run(cfg *config.Config) {
 	orderService := service.NewOrderService(orderRepository)
 
 	grpcServer := grpc.NewServer()
-	// pb.RegisterProductServiceServer(grpcServer, productService)
+	pb.RegisterOrderServiceServer(grpcServer, orderService)
 	// pb.RegisterProductImageServiceServer(grpcServer, productImageService)
 	lis, err := net.Listen("tcp", cfg.Port)
 	if err != nil {

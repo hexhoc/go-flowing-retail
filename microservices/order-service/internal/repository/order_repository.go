@@ -3,11 +3,12 @@ package repository
 import (
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/hexhoc/order-service/internal/entity"
 	"github.com/hexhoc/order-service/pkg/datasource/postgres"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -15,7 +16,7 @@ import (
 type OrderInterface interface {
 	FindAll(ctx context.Context, limit uint32, offset uint32) ([]*entity.Order, error)
 	FindById(ctx context.Context, id string) (*entity.Order, error)
-	Save(ctx context.Context, product *entity.Order) error
+	Save(ctx context.Context, product *entity.Order) (string, error)
 	Update(ctx context.Context, id string, product *entity.Order) error
 	Delete(ctx context.Context, id string) error
 }
@@ -41,7 +42,7 @@ func (r *OrderRepository) FindAll(ctx context.Context, limit uint32, offset uint
 		status,
 		is_deleted,
 		created_at,
-		update_at,
+		updated_at
 	FROM orders as o 
 	LIMIT $1 OFFSET $2
 	`
@@ -68,9 +69,11 @@ func (r *OrderRepository) FindAll(ctx context.Context, limit uint32, offset uint
 		order_items.quantity   as item_quantity,
 		order_items.price      as item_price
 	FROM order_items
-	WHERE order_items.order_id IN ($1)
+	WHERE order_items.order_id = ANY($1)
 	`
-	rowsItems, err := r.db.Pool.Query(ctx, queryItems, orderIds)
+
+	idsString := "{" + strings.Join(orderIds, ",") + "}"
+	rowsItems, err := r.db.Pool.Query(ctx, queryItems, idsString)
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -98,7 +101,7 @@ func (r *OrderRepository) FindById(ctx context.Context, id string) (*entity.Orde
 		orders.status,
 		orders.is_deleted,
 		orders.created_at,
-		orders.update_at,
+		orders.updated_at,
 		order_items.id         as item_id,
 		order_items.product_id as product_id,
 		order_items.quantity   as item_quantity,
@@ -128,68 +131,72 @@ func (r *OrderRepository) FindById(ctx context.Context, id string) (*entity.Orde
 	return item, nil
 }
 
-func (r *OrderRepository) Save(ctx context.Context, item *entity.Order) error {
+func (r *OrderRepository) Save(ctx context.Context, order *entity.Order) (string, error) {
+	//TODO: add transaction
 	query := `
 	INSERT INTO orders(customer_id, address, status, is_deleted, created_at, updated_at) 
-	VALUES ($1,$2,$3,$4,$5)
+	VALUES ($1,$2,$3,$4,$5,$6)
+	RETURNING id
 	`
 
-	ct, err := r.db.Pool.Exec(
+	rows, err := r.db.Pool.Query(
 		ctx, query,
-		item.CustomerId,
-		item.Address,
-		item.Status,
-		item.IsDeleted,
+		order.CustomerId,
+		order.Address,
+		order.Status,
+		order.IsDeleted,
 		time.Now(),
 		time.Now(),
 	)
 	if err != nil {
-		log.Error(err)
-		return err
+		log.Printf("failed create order %s", err.Error())
+		return "", fmt.Errorf("failed create order: %w", err)
 	}
 
-	log.Info(fmt.Sprintf("Order update row affected %d", ct.RowsAffected()))
-
+	var orderId string
+	rows.Next()
+	rows.Scan(&orderId)
+	rows.Close()
 	// Batch insert order items
-
 	queryItems := `INSERT INTO order_items (order_id, product_id, quantity, price) 
-	VALUES (@order_id, @product_id, @quantity, @price)`
+	VALUES ($1, $2, $3, $4)`
 	batch := &pgx.Batch{}
-	for _, v := range item.OrderItems {
-		batch.Queue(queryItems, v.OrderId, v.ProductId, v.Quantity, v.Price)
+	for _, item := range order.OrderItems {
+		price, _ := item.Price.Float64()
+		batch.Queue(queryItems, orderId, item.ProductId, item.Quantity, price)
 	}
 
 	results := r.db.Pool.SendBatch(ctx, batch)
 	defer results.Close()
 
-	for _, v := range item.OrderItems {
+	for _, v := range order.OrderItems {
 		_, err := results.Exec()
 		if err != nil {
 			log.Printf("order item %s already exists", v.Id)
-			return fmt.Errorf("unable to insert row: %w", err)
+			return "", fmt.Errorf("unable to insert row: %w", err)
 		}
 	}
 
-	return results.Close()
+	return orderId, results.Close()
 }
 
-func (r *OrderRepository) Update(ctx context.Context, id string, item *entity.Order) error {
+func (r *OrderRepository) Update(ctx context.Context, id string, order *entity.Order) error {
 	query := `
 	UPDATE orders SET 
 		customer_id = $1,
 		address = $2,
 		status = $3,
 		is_deleted = $4,
-		update_at = $5,
+		updated_at = $5
 	WHERE orders.id = $6
 	`
 
 	ct, err := r.db.Pool.Exec(
 		ctx, query,
-		item.CustomerId,
-		item.Address,
-		item.Status,
-		item.IsDeleted,
+		order.CustomerId,
+		order.Address,
+		order.Status,
+		order.IsDeleted,
 		time.Now(),
 		id,
 	)
@@ -209,14 +216,15 @@ func (r *OrderRepository) Update(ctx context.Context, id string, item *entity.Or
 	WHERE order_items.id = $5`
 
 	batch := &pgx.Batch{}
-	for _, v := range item.OrderItems {
-		batch.Queue(queryItems, v.OrderId, v.ProductId, v.Quantity, v.Price, v.Id)
+	for _, item := range order.OrderItems {
+		price, _ := item.Price.Float64()
+		batch.Queue(queryItems, item.OrderId, item.ProductId, item.Quantity, price, item.Id)
 	}
 
 	results := r.db.Pool.SendBatch(ctx, batch)
 	defer results.Close()
 
-	for _, v := range item.OrderItems {
+	for _, v := range order.OrderItems {
 		_, err := results.Exec()
 		if err != nil {
 			log.Printf("order item %s already exists", v.Id)
@@ -230,7 +238,7 @@ func (r *OrderRepository) Update(ctx context.Context, id string, item *entity.Or
 }
 
 func (r *OrderRepository) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM orders where orders.id = $1`
+	query := `DELETE FROM orders WHERE orders.id = $1`
 	ct, err := r.db.Pool.Exec(
 		ctx, query,
 		id,
@@ -288,7 +296,7 @@ func (r *OrderRepository) orderItemRowMapper(rows pgx.Rows, orderMap map[string]
 		orderId       string
 		customerId    uint32
 		address       string
-		status        uint32
+		status        string
 		isDeleted     bool
 		createdAt     time.Time
 		updatedAt     time.Time

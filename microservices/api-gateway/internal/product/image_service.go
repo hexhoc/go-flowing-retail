@@ -29,7 +29,7 @@ func (svc *ImageService) GetAllByProductId(ctx *gin.Context) {
 	}
 	response, err := svc.Client.GetAllByProductId(context.Background(), request)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
@@ -50,7 +50,7 @@ func (svc *ImageService) UploadImageToProduct(ctx *gin.Context) {
 	}
 	response, err := svc.Client.UploadImageToProduct(context.Background(), request)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
@@ -67,7 +67,7 @@ func (svc *ImageService) DeleteByNameAndProductId(ctx *gin.Context) {
 
 	response, err := svc.Client.DeleteByNameAndProductId(context.Background(), request)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 

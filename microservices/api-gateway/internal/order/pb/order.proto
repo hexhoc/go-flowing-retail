@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package product;
+package order;
 
-option go_package = "./internal/pb";
+option go_package = "./internal/order/pb";
 
 service OrderService {
   rpc FindAll(FindAllRequest) returns (FindAllResponse) {}
@@ -53,7 +53,7 @@ message OrderDto {
   string Id=1;
   uint32 CustomerId=2;
   string Address=3;
-  uint32 Status=4;
+  string Status=4;
   bool IsDeleted=5;
   int64 CreatedAt=6;
   int64 UpdatedAt=7;

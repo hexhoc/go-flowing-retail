@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.12
-// source: internal/pb/order.proto
+// source: internal/order/pb/order.proto
 
 package pb
 
@@ -39,7 +39,7 @@ func NewOrderServiceClient(cc grpc.ClientConnInterface) OrderServiceClient {
 
 func (c *orderServiceClient) FindAll(ctx context.Context, in *FindAllRequest, opts ...grpc.CallOption) (*FindAllResponse, error) {
 	out := new(FindAllResponse)
-	err := c.cc.Invoke(ctx, "/product.OrderService/FindAll", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/order.OrderService/FindAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *orderServiceClient) FindAll(ctx context.Context, in *FindAllRequest, op
 
 func (c *orderServiceClient) FindById(ctx context.Context, in *FindByIdRequest, opts ...grpc.CallOption) (*FindByIdResponse, error) {
 	out := new(FindByIdResponse)
-	err := c.cc.Invoke(ctx, "/product.OrderService/FindById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/order.OrderService/FindById", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *orderServiceClient) FindById(ctx context.Context, in *FindByIdRequest, 
 
 func (c *orderServiceClient) Save(ctx context.Context, in *SaveRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
 	out := new(StatusResponse)
-	err := c.cc.Invoke(ctx, "/product.OrderService/Save", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/order.OrderService/Save", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *orderServiceClient) Save(ctx context.Context, in *SaveRequest, opts ...
 
 func (c *orderServiceClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
 	out := new(StatusResponse)
-	err := c.cc.Invoke(ctx, "/product.OrderService/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/order.OrderService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *orderServiceClient) Update(ctx context.Context, in *UpdateRequest, opts
 
 func (c *orderServiceClient) Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
 	out := new(StatusResponse)
-	err := c.cc.Invoke(ctx, "/product.OrderService/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/order.OrderService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func _OrderService_FindAll_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/product.OrderService/FindAll",
+		FullMethod: "/order.OrderService/FindAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).FindAll(ctx, req.(*FindAllRequest))
@@ -152,7 +152,7 @@ func _OrderService_FindById_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/product.OrderService/FindById",
+		FullMethod: "/order.OrderService/FindById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).FindById(ctx, req.(*FindByIdRequest))
@@ -170,7 +170,7 @@ func _OrderService_Save_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/product.OrderService/Save",
+		FullMethod: "/order.OrderService/Save",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).Save(ctx, req.(*SaveRequest))
@@ -188,7 +188,7 @@ func _OrderService_Update_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/product.OrderService/Update",
+		FullMethod: "/order.OrderService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).Update(ctx, req.(*UpdateRequest))
@@ -206,7 +206,7 @@ func _OrderService_Delete_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/product.OrderService/Delete",
+		FullMethod: "/order.OrderService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).Delete(ctx, req.(*DeleteRequest))
@@ -218,7 +218,7 @@ func _OrderService_Delete_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var OrderService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "product.OrderService",
+	ServiceName: "order.OrderService",
 	HandlerType: (*OrderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -243,5 +243,5 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/pb/order.proto",
+	Metadata: "internal/order/pb/order.proto",
 }

@@ -1,9 +1,10 @@
 package logger
 
 import (
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Init(level string) {
@@ -27,7 +28,7 @@ func Init(level string) {
 	// Only log the debug severity or above
 	log.SetLevel(logLevel)
 	// logrus show line number
-	//log.SetReportCaller(true)
+	log.SetReportCaller(true)
 
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors:   false,

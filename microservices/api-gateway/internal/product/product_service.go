@@ -28,7 +28,7 @@ func (svc *ProductService) FindAll(ctx *gin.Context) {
 	productRequest := &pb.FindAllRequest{Limit: uint32(limit), Offset: uint32(offset)}
 	response, err := svc.Client.FindAll(context.Background(), productRequest)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
@@ -41,7 +41,8 @@ func (svc *ProductService) FindById(ctx *gin.Context) {
 	productRequest := &pb.FindByIdRequest{Id: uint32(id)}
 	response, err := svc.Client.FindById(context.Background(), productRequest)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		//TODO: Сделать единый формат сообщения об ошибке
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
@@ -56,7 +57,7 @@ func (svc *ProductService) Save(ctx *gin.Context) {
 	}
 	response, err := svc.Client.Save(context.Background(), &requestBody)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
@@ -72,7 +73,7 @@ func (svc *ProductService) SaveAll(ctx *gin.Context) {
 
 	response, err := svc.Client.SaveAll(context.Background(), &requestBody)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
@@ -88,7 +89,7 @@ func (svc *ProductService) Update(ctx *gin.Context) {
 
 	response, err := svc.Client.Update(context.Background(), &requestBody)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
@@ -101,7 +102,7 @@ func (svc *ProductService) Delete(ctx *gin.Context) {
 	request := &pb.DeleteRequest{Id: uint32(id)}
 	response, err := svc.Client.Delete(context.Background(), request)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 

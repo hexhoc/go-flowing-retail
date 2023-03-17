@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hexhoc/product-service/internal/entity"
@@ -64,6 +65,12 @@ func (r *ProductRepository) FindById(ctx context.Context, id uint32) (*entity.Pr
 	var item *entity.Product
 	for rows.Next() {
 		item = r.rowMapper(rows)
+	}
+
+	if item == nil {
+		err := errors.New("nothing found")
+		log.Error(err)
+		return nil, err
 	}
 
 	return item, nil

@@ -19,7 +19,7 @@ func NewAuthService(cc *grpc.ClientConn) *AuthService {
 }
 
 func (svc *AuthService) Login(ctx *gin.Context) {
-	routes.Register(ctx, svc.Client)
+	routes.Login(ctx, svc.Client)
 }
 
 func (svc *AuthService) Register(ctx *gin.Context) {

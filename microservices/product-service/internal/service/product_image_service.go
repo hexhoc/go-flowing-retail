@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 
 	"github.com/hexhoc/product-service/internal/entity"
 	"github.com/hexhoc/product-service/internal/pb"
 	"github.com/hexhoc/product-service/internal/repository"
+	log "github.com/sirupsen/logrus"
 )
 
 type ProductImageInterface interface {
@@ -36,6 +38,12 @@ func (s *ProductImageService) GetAllByProductId(ctx context.Context, request *pb
 	var imagesDto []*pb.ProductImageDto
 	for i := 0; i < len(images); i++ {
 		imagesDto = append(imagesDto, s.mapperToDto(images[0]))
+	}
+
+	if len(images) == 0 {
+		err := errors.New("nothing found")
+		log.Error(err)
+		return nil, err
 	}
 
 	return &pb.GetAllResponse{

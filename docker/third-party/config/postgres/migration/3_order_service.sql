@@ -11,9 +11,8 @@ create table orders
     address       varchar(255) not null default '',
     status        varchar(200)         not null,
     is_deleted    boolean      not null,
-    created_date  timestamp    not null,
-    modified_date timestamp    not null,
-    version       int8
+    created_at  timestamp    not null,
+    updated_at timestamp    not null
 );
 
 alter table orders

@@ -26,7 +26,7 @@ func Login(ctx *gin.Context, authClient pb.AuthServiceClient) {
 		Password: request.Password})
 
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"status": false, "message": err.Error()})
 	}
 
 	ctx.JSON(http.StatusCreated, response)

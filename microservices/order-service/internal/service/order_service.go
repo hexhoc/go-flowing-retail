@@ -64,11 +64,11 @@ func (s *OrderService) FindById(ctx context.Context, request *pb.FindByIdRequest
 }
 
 func (s *OrderService) Save(ctx context.Context, request *pb.SaveRequest) (*pb.StatusResponse, error) {
-	err := s.orderRepository.Save(ctx, s.mapperToEntity(request.Order))
+	id, err := s.orderRepository.Save(ctx, s.mapperToEntity(request.Order))
 	if err != nil {
 		return &pb.StatusResponse{Status: "NOT OK", Error: err.Error()}, err
 	} else {
-		return &pb.StatusResponse{Status: "OK", Error: ""}, nil
+		return &pb.StatusResponse{Status: id, Error: ""}, nil
 	}
 }
 
