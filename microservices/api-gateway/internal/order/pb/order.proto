@@ -15,6 +15,7 @@ service OrderService {
 message FindAllRequest {
   uint32 Limit=1;
   uint32 Offset=2;
+  bool WithItems=3;
 }
   
 message FindAllResponse {
@@ -24,6 +25,7 @@ message FindAllResponse {
   
 message FindByIdRequest {
   string Id=1;
+  bool WithItems=2;
 }
   
 message FindByIdResponse {

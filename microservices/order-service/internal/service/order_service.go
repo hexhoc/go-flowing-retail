@@ -29,7 +29,7 @@ func NewOrderService(orderRepository repository.OrderInterface) *OrderService {
 }
 
 func (s *OrderService) FindAll(ctx context.Context, request *pb.FindAllRequest) (*pb.FindAllResponse, error) {
-	results, err := s.orderRepository.FindAll(ctx, request.Limit, request.Offset)
+	results, err := s.orderRepository.FindAll(ctx, request.WithItems, request.Limit, request.Offset)
 	if err != nil {
 		return &pb.FindAllResponse{
 			Orders: []*pb.OrderDto{},
@@ -49,7 +49,7 @@ func (s *OrderService) FindAll(ctx context.Context, request *pb.FindAllRequest) 
 }
 
 func (s *OrderService) FindById(ctx context.Context, request *pb.FindByIdRequest) (*pb.FindByIdResponse, error) {
-	result, err := s.orderRepository.FindById(ctx, request.Id)
+	result, err := s.orderRepository.FindById(ctx, request.WithItems, request.Id)
 	if err != nil {
 		return &pb.FindByIdResponse{
 			Order: &pb.OrderDto{},

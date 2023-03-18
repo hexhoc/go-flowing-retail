@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 	"time"
 
@@ -14,8 +13,8 @@ import (
 )
 
 type OrderInterface interface {
-	FindAll(ctx context.Context, limit uint32, offset uint32) ([]*entity.Order, error)
-	FindById(ctx context.Context, id string) (*entity.Order, error)
+	FindAll(ctx context.Context, withItems bool, limit uint32, offset uint32) ([]*entity.Order, error)
+	FindById(ctx context.Context, withItems bool, id string) (*entity.Order, error)
 	Save(ctx context.Context, product *entity.Order) (string, error)
 	Update(ctx context.Context, id string, product *entity.Order) error
 	Delete(ctx context.Context, id string) error
@@ -32,7 +31,7 @@ func NewOrderRepository(db *postgres.Postgres) *OrderRepository {
 	}
 }
 
-func (r *OrderRepository) FindAll(ctx context.Context, limit uint32, offset uint32) ([]*entity.Order, error) {
+func (r *OrderRepository) FindAll(ctx context.Context, withItems bool, limit uint32, offset uint32) ([]*entity.Order, error) {
 
 	query := `
 	SELECT 
@@ -43,7 +42,7 @@ func (r *OrderRepository) FindAll(ctx context.Context, limit uint32, offset uint
 		is_deleted,
 		created_at,
 		updated_at
-	FROM orders as o 
+	FROM orders
 	LIMIT $1 OFFSET $2
 	`
 
@@ -62,27 +61,15 @@ func (r *OrderRepository) FindAll(ctx context.Context, limit uint32, offset uint
 		orderIds = append(orderIds, order.Id)
 	}
 
-	queryItems := `
-	SELECT 
-		order_items.id         as item_id,
-		order_items.product_id as product_id,
-		order_items.quantity   as item_quantity,
-		order_items.price      as item_price
-	FROM order_items
-	WHERE order_items.order_id = ANY($1)
-	`
-
-	idsString := "{" + strings.Join(orderIds, ",") + "}"
-	rowsItems, err := r.db.Pool.Query(ctx, queryItems, idsString)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	defer rowsItems.Close()
-
-	for rowsItems.Next() {
-		orderItem := r.itemRowMapper(rowsItems)
-		ordersMap[orderItem.OrderId].OrderItems = append(ordersMap[orderItem.OrderId].OrderItems, orderItem)
+	if withItems {
+		orderItems, err := r.getAllOrderItem(ctx, orderIds)
+		if err != nil {
+			log.Error(err)
+			return nil, err
+		}
+		for _, orderItem := range orderItems {
+			ordersMap[orderItem.OrderId].OrderItems = append(ordersMap[orderItem.OrderId].OrderItems, orderItem)
+		}
 	}
 
 	var ordersList []*entity.Order
@@ -92,23 +79,18 @@ func (r *OrderRepository) FindAll(ctx context.Context, limit uint32, offset uint
 	return ordersList, nil
 }
 
-func (r *OrderRepository) FindById(ctx context.Context, id string) (*entity.Order, error) {
+func (r *OrderRepository) FindById(ctx context.Context, withItems bool, id string) (*entity.Order, error) {
 	query := `
 	SELECT 
-		orders.id,
-		orders.customer_id,
-		orders.address,
-		orders.status,
-		orders.is_deleted,
-		orders.created_at,
-		orders.updated_at,
-		order_items.id         as item_id,
-		order_items.product_id as product_id,
-		order_items.quantity   as item_quantity,
-		order_items.price      as item_price
+		id,
+		customer_id,
+		address,
+		status,
+		is_deleted,
+		created_at,
+		updated_at
 	FROM orders
-	LEFT JOIN order_items ON orders.id = order_items.order_id
-	WHERE orders.id = $1
+	WHERE id = $1
 	`
 
 	rows, err := r.db.Pool.Query(ctx, query, id)
@@ -118,26 +100,28 @@ func (r *OrderRepository) FindById(ctx context.Context, id string) (*entity.Orde
 	}
 	defer rows.Close()
 
-	var item *entity.Order
-	orderMap := make(map[string]*entity.Order)
+	var order *entity.Order
 	for rows.Next() {
-		r.orderItemRowMapper(rows, orderMap)
+		order = r.orderRowMapper(rows)
 	}
 
-	for _, v := range orderMap {
-		item = v
+	if withItems {
+		orderItems, err := r.getAllOrderItem(ctx, []string{order.Id})
+		if err != nil {
+			log.Error(err)
+			return nil, err
+		}
+		order.OrderItems = orderItems
 	}
 
-	return item, nil
+	return order, nil
 }
 
 func (r *OrderRepository) Save(ctx context.Context, order *entity.Order) (string, error) {
 	//TODO: add transaction
-	query := `
-	INSERT INTO orders(customer_id, address, status, is_deleted, created_at, updated_at) 
-	VALUES ($1,$2,$3,$4,$5,$6)
-	RETURNING id
-	`
+	query := `INSERT INTO orders(customer_id, address, status, is_deleted, created_at, updated_at) 
+			  VALUES ($1,$2,$3,$4,$5,$6)
+			  RETURNING id`
 
 	rows, err := r.db.Pool.Query(
 		ctx, query,
@@ -157,30 +141,18 @@ func (r *OrderRepository) Save(ctx context.Context, order *entity.Order) (string
 	rows.Next()
 	rows.Scan(&orderId)
 	rows.Close()
-	// Batch insert order items
-	queryItems := `INSERT INTO order_items (order_id, product_id, quantity, price) 
-	VALUES ($1, $2, $3, $4)`
-	batch := &pgx.Batch{}
-	for _, item := range order.OrderItems {
-		price, _ := item.Price.Float64()
-		batch.Queue(queryItems, orderId, item.ProductId, item.Quantity, price)
+
+	err = r.insertOrderItem(ctx, orderId, order.OrderItems)
+	if err != nil {
+		log.Printf("failed create order %s", err.Error())
+		return "", fmt.Errorf("failed create order: %w", err)
 	}
 
-	results := r.db.Pool.SendBatch(ctx, batch)
-	defer results.Close()
-
-	for _, v := range order.OrderItems {
-		_, err := results.Exec()
-		if err != nil {
-			log.Printf("order item %s already exists", v.Id)
-			return "", fmt.Errorf("unable to insert row: %w", err)
-		}
-	}
-
-	return orderId, results.Close()
+	return orderId, nil
 }
 
 func (r *OrderRepository) Update(ctx context.Context, id string, order *entity.Order) error {
+
 	query := `
 	UPDATE orders SET 
 		customer_id = $1,
@@ -206,35 +178,23 @@ func (r *OrderRepository) Update(ctx context.Context, id string, order *entity.O
 		return err
 	}
 
-	// Batch insert order items
-	queryItems := `
-	UPDATE order_items SET
-		order_id = $1, 
-		product_id = $2, 
-		quantity = $3, 
-		price = $4 
-	WHERE order_items.id = $5`
-
-	batch := &pgx.Batch{}
-	for _, item := range order.OrderItems {
-		price, _ := item.Price.Float64()
-		batch.Queue(queryItems, item.OrderId, item.ProductId, item.Quantity, price, item.Id)
+	// delete order item
+	err = r.deleteOrderItem(ctx, order.OrderItems)
+	if err != nil {
+		return err
+	}
+	err = r.insertOrderItem(ctx, order.Id, order.OrderItems)
+	if err != nil {
+		return err
+	}
+	err = r.updateOrderItem(ctx, order.OrderItems)
+	if err != nil {
+		return err
 	}
 
-	results := r.db.Pool.SendBatch(ctx, batch)
-	defer results.Close()
-
-	for _, v := range order.OrderItems {
-		_, err := results.Exec()
-		if err != nil {
-			log.Printf("order item %s already exists", v.Id)
-			return fmt.Errorf("unable to insert row: %w", err)
-		}
-
-	}
 	log.Info(fmt.Sprintf("Order update row affected %d", ct.RowsAffected()))
 
-	return results.Close()
+	return nil
 }
 
 func (r *OrderRepository) Delete(ctx context.Context, id string) error {
@@ -252,6 +212,139 @@ func (r *OrderRepository) Delete(ctx context.Context, id string) error {
 	log.Info(fmt.Sprintf("Orders delete row affected %d", ct.RowsAffected()))
 
 	return nil
+}
+
+func (r *OrderRepository) insertOrderItem(ctx context.Context, orderId string, orderItems []*entity.OrderItem) error {
+
+	// Batch insert order items
+	queryItems := `INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4)`
+	batch := &pgx.Batch{}
+	for _, item := range orderItems {
+		if item.Id != "" {
+			continue
+		}
+		price, _ := item.Price.Float64()
+		batch.Queue(queryItems, orderId, item.ProductId, item.Quantity, price)
+	}
+
+	if batch.Len() == 0 {
+		// Nothing to insert
+		return nil
+	}
+
+	results := r.db.Pool.SendBatch(ctx, batch)
+	defer results.Close()
+
+	for _, v := range orderItems {
+		_, err := results.Exec()
+		if err != nil {
+			log.Printf("order item %s already exists", v.Id)
+			return fmt.Errorf("unable to insert row: %w", err)
+		}
+	}
+
+	return results.Close()
+}
+
+func (r *OrderRepository) updateOrderItem(ctx context.Context, orderItems []*entity.OrderItem) error {
+
+	// Batch insert order items
+	query := `
+	UPDATE order_items SET
+		order_id = $1, 
+		product_id = $2, 
+		quantity = $3, 
+		price = $4 
+	WHERE order_items.id = $5`
+
+	batch := &pgx.Batch{}
+	for _, item := range orderItems {
+		if item.Id == "" {
+			continue
+		}
+		price, _ := item.Price.Float64()
+		batch.Queue(query, item.OrderId, item.ProductId, item.Quantity, price, item.Id)
+	}
+
+	// nothing to update
+	if batch.Len() == 0 {
+		return nil
+	}
+
+	results := r.db.Pool.SendBatch(ctx, batch)
+	defer results.Close()
+
+	for _, v := range orderItems {
+		_, err := results.Exec()
+		if err != nil {
+			log.Printf("order item %s already exists", v.Id)
+			return fmt.Errorf("unable to insert row: %w", err)
+		}
+
+	}
+
+	return results.Close()
+}
+
+func (r *OrderRepository) deleteOrderItem(ctx context.Context, orderItems []*entity.OrderItem) error {
+
+	var idsList []string
+	for _, orderItem := range orderItems {
+		if orderItem.Id == "" {
+			continue
+		}
+		idsList = append(idsList, orderItem.Id)
+	}
+
+	if len(idsList) == 0 {
+		return nil
+	}
+
+	idsString := "{" + strings.Join(idsList, ",") + "}"
+
+	// Batch insert order items
+	query := `DELETE FROM order_items WHERE order_items.id <> ANY($5)`
+	ct, err := r.db.Pool.Exec(
+		ctx, query,
+		idsString,
+	)
+
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	log.Info(fmt.Sprintf("Orders delete row affected %d", ct.RowsAffected()))
+
+	return nil
+}
+
+func (r *OrderRepository) getAllOrderItem(ctx context.Context, orderIds []string) ([]*entity.OrderItem, error) {
+
+	query := `
+	SELECT 
+		order_items.id         as item_id,
+		order_items.product_id as product_id,
+		order_items.quantity   as item_quantity,
+		order_items.price      as item_price
+	FROM order_items
+	WHERE order_items.order_id = ANY($1)
+`
+
+	idsString := "{" + strings.Join(orderIds, ",") + "}"
+	rows, err := r.db.Pool.Query(ctx, query, idsString)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orderItems []*entity.OrderItem
+	for rows.Next() {
+		orderItems = append(orderItems, r.itemRowMapper(rows))
+	}
+
+	return orderItems, nil
 }
 
 func (r *OrderRepository) orderRowMapper(rows pgx.Rows) *entity.Order {
@@ -288,59 +381,4 @@ func (r *OrderRepository) itemRowMapper(rows pgx.Rows) *entity.OrderItem {
 	}
 
 	return &item
-}
-
-func (r *OrderRepository) orderItemRowMapper(rows pgx.Rows, orderMap map[string]*entity.Order) {
-
-	var (
-		orderId       string
-		customerId    uint32
-		address       string
-		status        string
-		isDeleted     bool
-		createdAt     time.Time
-		updatedAt     time.Time
-		itemId        string
-		itemProductId uint32
-		itemQuantity  uint32
-		itemPrice     big.Float
-	)
-	rows.Scan(
-		&orderId,
-		&customerId,
-		&address,
-		&status,
-		&isDeleted,
-		&createdAt,
-		&updatedAt,
-		&itemId,
-		&itemProductId,
-		&itemQuantity,
-		&itemPrice,
-	)
-
-	if _, ok := orderMap[orderId]; !ok {
-		order := entity.Order{
-			Id:         orderId,
-			CustomerId: customerId,
-			Address:    address,
-			Status:     status,
-			IsDeleted:  isDeleted,
-			CreatedAt:  createdAt,
-			UpdatedAt:  updatedAt,
-			OrderItems: []*entity.OrderItem{},
-		}
-
-		orderMap[orderId] = &order
-	}
-
-	orderItem := entity.OrderItem{
-		Id:        itemId,
-		OrderId:   orderId,
-		ProductId: itemProductId,
-		Quantity:  itemQuantity,
-		Price:     itemPrice,
-	}
-
-	orderMap[orderId].OrderItems = append(orderMap[orderId].OrderItems, &orderItem)
 }
