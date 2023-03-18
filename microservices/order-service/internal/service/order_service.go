@@ -8,6 +8,7 @@ import (
 	"github.com/hexhoc/order-service/internal/entity"
 	"github.com/hexhoc/order-service/internal/pb"
 	"github.com/hexhoc/order-service/internal/repository"
+	"github.com/hexhoc/order-service/pkg/kafka/publisher"
 )
 
 type OrderInterface interface {
@@ -19,12 +20,22 @@ type OrderInterface interface {
 }
 
 type OrderService struct {
-	orderRepository repository.OrderInterface
+	orderRepository       repository.OrderInterface
+	paymentEventPublisher publisher.EventPublisher
+	fetchGoodsPublisher   publisher.EventPublisher
+	shipGoodsPublisher    publisher.EventPublisher
 }
 
-func NewOrderService(orderRepository repository.OrderInterface) *OrderService {
+func NewOrderService(orderRepository repository.OrderInterface,
+	paymentEventPublisher publisher.EventPublisher,
+	fetchGoodsPublisher publisher.EventPublisher,
+	shipGoodsPublisher publisher.EventPublisher) *OrderService {
+
 	return &OrderService{
-		orderRepository: orderRepository,
+		orderRepository:       orderRepository,
+		paymentEventPublisher: paymentEventPublisher,
+		fetchGoodsPublisher:   fetchGoodsPublisher,
+		shipGoodsPublisher:    shipGoodsPublisher,
 	}
 }
 
@@ -68,6 +79,8 @@ func (s *OrderService) Save(ctx context.Context, request *pb.SaveRequest) (*pb.S
 	if err != nil {
 		return &pb.StatusResponse{Status: "NOT OK", Error: err.Error()}, err
 	} else {
+
+		//TODO: Add event publisher and send message to Retrieve paymant
 		return &pb.StatusResponse{Status: id, Error: ""}, nil
 	}
 }

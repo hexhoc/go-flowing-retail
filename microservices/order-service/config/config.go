@@ -7,6 +7,7 @@ type Config struct {
 	DBUrl        string `mapstructure:"DB_URL"`
 	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
 	LogLevel     string `mapstructure:"LOG_LEVEL"`
+	KafkaAddr    string `mapstructure:"KAFKA_ADDR"`
 }
 
 func LoadConfig() (*Config, error) {
