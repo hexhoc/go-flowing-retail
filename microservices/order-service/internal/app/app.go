@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/hexhoc/order-service/internal/repository"
 	"github.com/hexhoc/order-service/internal/service"
 	"github.com/hexhoc/order-service/pkg/datasource/postgres"
+	"github.com/hexhoc/order-service/pkg/kafka/consumer"
 	"github.com/hexhoc/order-service/pkg/kafka/publisher"
 	"github.com/hexhoc/order-service/pkg/logger"
 	log "github.com/sirupsen/logrus"
@@ -35,6 +37,11 @@ func Run(cfg *config.Config) {
 	// USECASE AND REPOSITORY INIT
 	orderRepository := repository.NewOrderRepository(pg)
 	orderService := service.NewOrderService(orderRepository, paymentEventPublisher, fetchGoodsPublisher, shipGoodsPublisher)
+
+	// KAFKA CONSUMER
+	paymentConsumer := consumer.NewConsumer([]string{cfg.KafkaAddr}, "order", "paymentTopic")
+	go paymentConsumer.Consume(context.Background(), orderService.)
+	// GRPC SERVER
 	grpcServer := grpc.NewServer()
 	pb.RegisterOrderServiceServer(grpcServer, orderService)
 	lis, err := net.Listen("tcp", cfg.Port)

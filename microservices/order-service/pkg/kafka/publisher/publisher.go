@@ -22,6 +22,11 @@ const (
 	_defaultMaxRetryAttempts = 3
 )
 
+type EventPublisher interface {
+	Publish(ctx context.Context, msg []byte) error
+	Close(ctx context.Context) error
+}
+
 type Producer struct {
 	writer *kafka.Writer
 }
