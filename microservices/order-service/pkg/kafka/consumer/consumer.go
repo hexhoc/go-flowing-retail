@@ -32,7 +32,7 @@ type Message struct {
 // Consume reads and returns the next message from the consumer.
 // The method blocks until a message becomes available, or an error occurs.
 // The program may also specify a context to asynchronously cancel the blocking operation.
-func Consume(ctx context.Context, addr []string, topic string, handler func(message *Message) error) error {
+func Consume(ctx context.Context, addr []string, topic string, handler func(message *Message) error) {
 
 	kafkaReader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: addr,
@@ -44,49 +44,51 @@ func Consume(ctx context.Context, addr []string, topic string, handler func(mess
 	})
 	defer kafkaReader.Close()
 
-	log.Info(fmt.Sprintf("Start consuming topic: %s", c.reader.Config().Topic))
-	errChan := make(chan error, 1)
+	log.Info(fmt.Sprintf("Start consuming topic: %s", kafkaReader.Config().Topic))
 
-	for {
-		msg, err := c.reader.ReadMessage(ctx)
-		if err != nil {
-			errChan <- err
-			break
-		}
+	go func() {
+		for {
+			msg, err := kafkaReader.ReadMessage(ctx)
+			if err != nil {
+				panic(err)
+			}
 
-		log.Info(fmt.Sprintf("Received message: %s", msg.Value))
+			log.Info(fmt.Sprintf("Received message: %s", msg.Value))
 
-		var headers []MessageHeader
-		if l := len(msg.Headers); l > 0 {
-			headers = make([]MessageHeader, l)
-			for i := range msg.Headers {
-				headers[i] = MessageHeader{
-					Key:   msg.Headers[i].Key,
-					Value: msg.Headers[i].Value,
-				}
+			message := messageMapping(msg)
+			if err := handler(message); err != nil {
+				log.Printf("error consuming message, err: %#v\n", err)
+				panic(err)
+			}
+
+			if err := kafkaReader.CommitMessages(context.Background(), msg); err != nil {
+				panic(err)
 			}
 		}
+	}()
+}
 
-		message := &Message{
-			Key:       msg.Key,
-			Value:     msg.Value,
-			Topic:     msg.Topic,
-			Partition: int32(msg.Partition),
-			Offset:    msg.Offset,
-			Headers:   headers,
-			Timestamp: msg.Time,
-		}
-
-		if err := handler(message); err != nil {
-			log.Printf("error consuming message, err: %#v\n", err)
-			continue
+func messageMapping(msg kafka.Message) *Message {
+	var headers []MessageHeader
+	if l := len(msg.Headers); l > 0 {
+		headers = make([]MessageHeader, l)
+		for i := range msg.Headers {
+			headers[i] = MessageHeader{
+				Key:   msg.Headers[i].Key,
+				Value: msg.Headers[i].Value,
+			}
 		}
 	}
 
-	err := <-errChan
-	log.Printf("consumer stopped with an error %#v\n", err.Error())
-	if err != nil {
-		panic(err)
+	message := &Message{
+		Key:       msg.Key,
+		Value:     msg.Value,
+		Topic:     msg.Topic,
+		Partition: int32(msg.Partition),
+		Offset:    msg.Offset,
+		Headers:   headers,
+		Timestamp: msg.Time,
 	}
-	return err
+
+	return message
 }

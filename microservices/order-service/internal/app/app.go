@@ -39,8 +39,10 @@ func Run(cfg *config.Config) {
 	orderService := service.NewOrderService(orderRepository, paymentEventPublisher, fetchGoodsPublisher, shipGoodsPublisher)
 
 	// KAFKA CONSUMER
-	paymentConsumer := consumer.NewConsumer([]string{cfg.KafkaAddr}, "order", "paymentTopic")
-	go paymentConsumer.Consume(context.Background(), orderService.)
+	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "paymentTopic", orderService.EventHandle)
+	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "fetchGoodsTopic", orderService.EventHandle)
+	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "shipGoodsTopic", orderService.EventHandle)
+
 	// GRPC SERVER
 	grpcServer := grpc.NewServer()
 	pb.RegisterOrderServiceServer(grpcServer, orderService)
