@@ -3,11 +3,9 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	Port         string `mapstructure:"PORT"`
-	DBUrl        string `mapstructure:"DB_URL"`
-	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
-	LogLevel     string `mapstructure:"LOG_LEVEL"`
-	KafkaAddr    string `mapstructure:"KAFKA_ADDR"`
+	Port      string `mapstructure:"PORT"`
+	LogLevel  string `mapstructure:"LOG_LEVEL"`
+	KafkaAddr string `mapstructure:"KAFKA_ADDR"`
 }
 
 func LoadConfig() (*Config, error) {

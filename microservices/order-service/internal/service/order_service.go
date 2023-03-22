@@ -42,7 +42,19 @@ func NewOrderService(orderRepository repository.OrderInterface,
 	}
 }
 
-func (s *OrderService) EventHandle(message *consumer.Message) error {
+func (s *OrderService) EventPayment(message *consumer.Message) error {
+	//TODO: update order status
+	fmt.Println(message)
+	return nil
+}
+
+func (s *OrderService) EventFetchGoods(message *consumer.Message) error {
+	//TODO: update order status
+	fmt.Println(message)
+	return nil
+}
+
+func (s *OrderService) EventShipGoods(message *consumer.Message) error {
 	//TODO: update order status
 	fmt.Println(message)
 	return nil

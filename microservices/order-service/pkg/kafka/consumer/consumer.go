@@ -10,7 +10,9 @@ import (
 )
 
 const (
-	_defaultGroupId = "order"
+	_defaultGroupId  = "order"
+	_maxRetries      = 3
+	_retriesInterval = time.Second * 2
 )
 
 // MessageHeader is a key/value pair type representing headers set on records
@@ -48,9 +50,19 @@ func Consume(ctx context.Context, addr []string, topic string, handler func(mess
 
 	go func() {
 		for {
-			msg, err := kafkaReader.ReadMessage(ctx)
-			if err != nil {
-				panic(err)
+			var err error
+			var msg kafka.Message
+			var retryNumber = 0
+
+			for retryNumber <= _maxRetries {
+				msg, err = kafkaReader.ReadMessage(ctx)
+				if err != nil {
+					log.Error(err)
+					retryNumber = retryNumber + 1
+					time.Sleep(_retriesInterval)
+					continue
+				}
+				break
 			}
 
 			log.Info(fmt.Sprintf("Received message: %s", msg.Value))
