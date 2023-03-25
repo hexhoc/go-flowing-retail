@@ -65,10 +65,13 @@ func Consume(ctx context.Context, addr []string, topic string, handler func(mess
 				break
 			}
 
+			if err != nil {
+				panic(err)
+			}
+
 			log.Info(fmt.Sprintf("Received message: %s", msg.Value))
 
-			message := messageMapping(msg)
-			if err := handler(message); err != nil {
+			if err := handler(messageMapping(msg)); err != nil {
 				log.Printf("error consuming message, err: %#v\n", err)
 				panic(err)
 			}

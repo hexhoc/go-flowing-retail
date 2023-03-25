@@ -2,19 +2,16 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
 	"github.com/hexhoc/order-service/internal/entity"
 	"github.com/hexhoc/order-service/internal/pb"
 	"github.com/hexhoc/order-service/internal/repository"
-	"github.com/hexhoc/order-service/pkg/kafka/consumer"
 	"github.com/hexhoc/order-service/pkg/kafka/publisher"
 )
 
 type OrderInterface interface {
-	EventHandle(message *consumer.Message) error
 	FindAll(ctx context.Context, request *pb.FindAllRequest) (*pb.FindAllResponse, error)
 	FindById(ctx context.Context, request *pb.FindByIdRequest) (*pb.FindByIdResponse, error)
 	Save(ctx context.Context, request *pb.SaveRequest) (*pb.StatusResponse, error)
@@ -40,24 +37,6 @@ func NewOrderService(orderRepository repository.OrderInterface,
 		fetchGoodsPublisher:   fetchGoodsPublisher,
 		shipGoodsPublisher:    shipGoodsPublisher,
 	}
-}
-
-func (s *OrderService) EventPayment(message *consumer.Message) error {
-	//TODO: update order status
-	fmt.Println(message)
-	return nil
-}
-
-func (s *OrderService) EventFetchGoods(message *consumer.Message) error {
-	//TODO: update order status
-	fmt.Println(message)
-	return nil
-}
-
-func (s *OrderService) EventShipGoods(message *consumer.Message) error {
-	//TODO: update order status
-	fmt.Println(message)
-	return nil
 }
 
 func (s *OrderService) FindAll(ctx context.Context, request *pb.FindAllRequest) (*pb.FindAllResponse, error) {
@@ -100,7 +79,6 @@ func (s *OrderService) Save(ctx context.Context, request *pb.SaveRequest) (*pb.S
 	if err != nil {
 		return &pb.StatusResponse{Status: "NOT OK", Error: err.Error()}, err
 	} else {
-
 		//TODO: Add event publisher and send message to Retrieve paymant
 		return &pb.StatusResponse{Status: id, Error: ""}, nil
 	}

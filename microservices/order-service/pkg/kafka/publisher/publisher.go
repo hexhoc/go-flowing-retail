@@ -27,6 +27,8 @@ type EventPublisher interface {
 	Close(ctx context.Context) error
 }
 
+//TODO: add message format to publish
+
 type Producer struct {
 	writer *kafka.Writer
 }
