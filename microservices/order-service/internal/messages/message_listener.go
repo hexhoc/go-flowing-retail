@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hexhoc/order-service/internal/service"
-	"github.com/segmentio/kafka-go"
+	"github.com/hexhoc/order-service/pkg/kafka/consumer"
 )
 
 type MessageListener struct {
@@ -15,19 +15,19 @@ func NewMessageListener(orderService service.OrderInterface) *MessageListener {
 	return &MessageListener{orderService: orderService}
 }
 
-func (t *MessageListener) EventPayment(message *kafka.Message) error {
+func (t *MessageListener) EventPayment(message *consumer.Message) error {
 	//TODO: update order status
 	fmt.Println(message)
 	return nil
 }
 
-func (t *MessageListener) EventFetchGoods(message *kafka.Message) error {
+func (t *MessageListener) EventFetchGoods(message *consumer.Message) error {
 	//TODO: update order status
 	fmt.Println(message)
 	return nil
 }
 
-func (t *MessageListener) EventShipGoods(message *kafka.Message) error {
+func (t *MessageListener) EventShipGoods(message *consumer.Message) error {
 	//TODO: update order status
 	fmt.Println(message)
 	return nil

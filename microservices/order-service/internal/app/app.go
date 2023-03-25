@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/hexhoc/order-service/config"
+	"github.com/hexhoc/order-service/internal/messages"
 	"github.com/hexhoc/order-service/internal/pb"
 	"github.com/hexhoc/order-service/internal/repository"
 	"github.com/hexhoc/order-service/internal/service"
@@ -37,11 +38,11 @@ func Run(cfg *config.Config) {
 	// USECASE AND REPOSITORY INIT
 	orderRepository := repository.NewOrderRepository(pg)
 	orderService := service.NewOrderService(orderRepository, paymentEventPublisher, fetchGoodsPublisher, shipGoodsPublisher)
-
+	messageListener := messages.NewMessageListener(orderService)
 	// KAFKA CONSUMER
-	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "paymentTopic", orderService.EventPayment)
-	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "fetchGoodsTopic", orderService.EventFetchGoods)
-	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "shipGoodsTopic", orderService.EventShipGoods)
+	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "paymentTopic", messageListener.EventPayment)
+	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "fetchGoodsTopic", messageListener.EventFetchGoods)
+	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "shipGoodsTopic", messageListener.EventShipGoods)
 
 	// GRPC SERVER
 	grpcServer := grpc.NewServer()
