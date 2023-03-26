@@ -5,7 +5,10 @@ import (
 	"math/big"
 	"time"
 
+	"encoding/json"
+
 	"github.com/hexhoc/order-service/internal/entity"
+	"github.com/hexhoc/order-service/internal/messages/payload/command"
 	"github.com/hexhoc/order-service/internal/pb"
 	"github.com/hexhoc/order-service/internal/repository"
 	"github.com/hexhoc/order-service/pkg/kafka/publisher"
@@ -75,11 +78,19 @@ func (s *OrderService) FindById(ctx context.Context, request *pb.FindByIdRequest
 }
 
 func (s *OrderService) Save(ctx context.Context, request *pb.SaveRequest) (*pb.StatusResponse, error) {
-	id, err := s.orderRepository.Save(ctx, s.mapperToEntity(request.Order))
+	order := s.mapperToEntity(request.Order)
+	id, err := s.orderRepository.Save(ctx, order)
 	if err != nil {
 		return &pb.StatusResponse{Status: "NOT OK", Error: err.Error()}, err
 	} else {
-		//TODO: Add event publisher and send message to Retrieve paymant
+		retrievePayment := command.RetrievePaymentCommandPayload{
+			RefId:      id,
+			CustomerId: order.CustomerId,
+			Reason:     "order",
+			Amount:     order.GetTotalSum(),
+		}
+		messageJson, _ := json.Marshal(retrievePayment)
+		s.paymentEventPublisher.Publish(ctx, messageJson)
 		return &pb.StatusResponse{Status: id, Error: ""}, nil
 	}
 }

@@ -14,3 +14,13 @@ type Order struct {
 	UpdatedAt  time.Time    `json:"updated_at"`
 	OrderItems []*OrderItem `json:"order_items"`
 }
+
+func (t *Order) GetTotalSum() float64 {
+	var totalSum float64
+	for _, item := range t.OrderItems {
+		itemPrice, _ := item.Price.Float64()
+		totalSum = totalSum + itemPrice
+	}
+
+	return totalSum
+}
