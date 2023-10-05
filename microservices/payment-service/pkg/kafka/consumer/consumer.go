@@ -46,26 +46,24 @@ func Consume(ctx context.Context, addr []string, topic string, handler func(mess
 
 	log.Info(fmt.Sprintf("Start consuming topic: %s", kafkaReader.Config().Topic))
 
-	go func() {
-		for {
-			msg, err := kafkaReader.ReadMessage(ctx)
-			if err != nil {
-				panic(err)
-			}
-
-			log.Info(fmt.Sprintf("Received message: %s", msg.Value))
-
-			message := messageMapping(msg)
-			if err := handler(message); err != nil {
-				log.Printf("error consuming message, err: %#v\n", err)
-				panic(err)
-			}
-
-			if err := kafkaReader.CommitMessages(context.Background(), msg); err != nil {
-				panic(err)
-			}
+	for {
+		msg, err := kafkaReader.ReadMessage(ctx)
+		if err != nil {
+			panic(err)
 		}
-	}()
+
+		log.Info(fmt.Sprintf("Received message: %s", msg.Value))
+
+		message := messageMapping(msg)
+		if err := handler(message); err != nil {
+			log.Printf("error consuming message, err: %#v\n", err)
+			panic(err)
+		}
+
+		if err := kafkaReader.CommitMessages(context.Background(), msg); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func messageMapping(msg kafka.Message) *Message {

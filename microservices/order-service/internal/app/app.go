@@ -31,7 +31,7 @@ func Run(cfg *config.Config) {
 	defer pg.Close()
 
 	// KAFKA PUBLISHER INIT
-	paymentEventPublisher := publisher.NewPublisher([]string{cfg.KafkaAddr}, "paymentTopic")
+	paymentEventPublisher := publisher.NewPublisher([]string{cfg.KafkaAddr}, "paymentRetrieveTopic")
 	fetchGoodsPublisher := publisher.NewPublisher([]string{cfg.KafkaAddr}, "fetchGoodsTopic")
 	shipGoodsPublisher := publisher.NewPublisher([]string{cfg.KafkaAddr}, "shipGoodsTopic")
 
@@ -40,7 +40,7 @@ func Run(cfg *config.Config) {
 	orderService := service.NewOrderService(orderRepository, paymentEventPublisher, fetchGoodsPublisher, shipGoodsPublisher)
 	messageListener := messages.NewMessageListener(orderService)
 	// KAFKA CONSUMER
-	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "paymentTopic", messageListener.EventPayment)
+	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "paymentReceivedTopic", messageListener.EventPayment)
 	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "fetchGoodsTopic", messageListener.EventFetchGoods)
 	consumer.Consume(context.Background(), []string{cfg.KafkaAddr}, "shipGoodsTopic", messageListener.EventShipGoods)
 
